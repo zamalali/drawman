@@ -13,6 +13,8 @@ src/engine/icons.sources.json. Built packages (npm, .vsix) embed those icons.
 - GitHub, GitHub Actions, Docker and JFrog logos: Simple Icons, https://simpleicons.org (CC0-1.0 for the SVG data).
   All product names, logos and brands are property of their respective owners and are used only to identify
   the products they represent; their use does not imply endorsement.
+- docs/flex-left.svg and docs/flex-right.svg (README title): the flexed biceps emoji (U+1F4AA) from Noto Emoji,
+  https://github.com/googlefonts/noto-emoji, Copyright Google Inc., Apache-2.0; the right one is mirrored.
 
 draw.io and diagrams.net are trademarks of JGraph Ltd. This project is not affiliated with or endorsed by JGraph,
 Google, Microsoft, SAP, GitHub, Docker or JFrog.

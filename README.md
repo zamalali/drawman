@@ -1,4 +1,4 @@
-<h1 align="center">Drawman</h1>
+<h1 align="center"><img src="docs/flex-left.svg" alt="" width="44" height="44" align="top"> Drawman <img src="docs/flex-right.svg" alt="" width="44" height="44" align="top"></h1>
 
 <h3 align="center"><em>draw.io on steroids.</em></h3>
 
