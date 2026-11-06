@@ -1,0 +1,13 @@
+{
+  "name": "drawman",
+  "owner": { "name": "Drawman contributors" },
+  "description": "draw.io on steroids. Much cheaper, extremely fast, high-quality draw.io diagrams for coding agents.",
+  "plugins": [
+    {
+      "name": "drawman",
+      "source": "./plugins/drawman",
+      "description": "draw.io on steroids. Turn any codebase or description into editable draw.io diagrams: architecture, flowcharts, sequence, state, class and ER.",
+      "category": "diagrams"
+    }
+  ]
+}

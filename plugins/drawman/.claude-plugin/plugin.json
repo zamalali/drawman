@@ -1,0 +1,8 @@
+{
+  "name": "drawman",
+  "description": "draw.io on steroids. Turn any codebase or description into editable draw.io diagrams (architecture, flowcharts, sequence, state, class, ER): fast, cheap, official cloud icons, clean routing, evidence from your code.",
+  "version": "0.2.0",
+  "author": { "name": "Drawman contributors" },
+  "license": "Apache-2.0",
+  "keywords": ["draw.io", "drawio", "architecture", "diagram", "mcp", "aws", "gcp", "azure", "sap", "kubernetes"]
+}

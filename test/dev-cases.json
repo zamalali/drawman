@@ -1,0 +1,109 @@
+{
+  "state": {
+    "title": "Order lifecycle",
+    "states": [
+      { "id": "start", "type": "initial" },
+      { "id": "created", "title": "Created", "detail": "entry / reserve stock" },
+      { "id": "paid", "title": "Paid" },
+      { "id": "payment_failed", "title": "Payment failed" },
+      { "id": "shipped", "title": "Shipped", "detail": "entry / notify customer" },
+      { "id": "delivered", "title": "Delivered" },
+      { "id": "cancelled", "title": "Cancelled", "detail": "entry / release stock" },
+      { "id": "returned", "title": "Returned" },
+      { "id": "end", "type": "final" }
+    ],
+    "transitions": [
+      { "from": "start", "to": "created" },
+      { "from": "created", "to": "paid", "event": "payment captured" },
+      { "from": "created", "to": "payment_failed", "event": "payment declined" },
+      { "from": "payment_failed", "to": "created", "event": "retry", "guard": "attempts < 3" },
+      { "from": "payment_failed", "to": "cancelled", "event": "give up" },
+      { "from": "created", "to": "cancelled", "event": "cancel" },
+      { "from": "paid", "to": "shipped", "event": "dispatched" },
+      { "from": "shipped", "to": "delivered", "event": "delivered" },
+      { "from": "delivered", "to": "returned", "event": "return requested", "guard": "within 30 days" },
+      { "from": "delivered", "to": "end" },
+      { "from": "returned", "to": "end" },
+      { "from": "cancelled", "to": "end" }
+    ]
+  },
+  "class": {
+    "title": "Order domain model",
+    "classes": [
+      { "id": "entity", "name": "BaseEntity", "type": "abstract", "attributes": ["# id: UUID", "# createdAt: Instant"], "methods": ["+ equals(other): boolean"] },
+      { "id": "customer", "name": "Customer", "attributes": ["- email: String", "- name: String"], "methods": ["+ placeOrder(cart: Cart): Order"] },
+      { "id": "order", "name": "Order", "attributes": ["- status: OrderStatus", "- total: Money"], "methods": ["+ addItem(p: Product, qty: int)", "+ pay(method: PaymentMethod)", "+ cancel()"] },
+      { "id": "item", "name": "OrderItem", "attributes": ["- quantity: int", "- price: Money"] },
+      { "id": "product", "name": "Product", "attributes": ["- sku: String", "- price: Money"] },
+      { "id": "status", "name": "OrderStatus", "type": "enum", "attributes": ["CREATED", "PAID", "SHIPPED", "CANCELLED"] },
+      { "id": "payment", "name": "PaymentMethod", "type": "interface", "methods": ["+ charge(amount: Money): Receipt"] },
+      { "id": "card", "name": "CardPayment", "attributes": ["- token: String"], "methods": ["+ charge(amount: Money): Receipt"] },
+      { "id": "paypal", "name": "PayPalPayment", "attributes": ["- account: String"], "methods": ["+ charge(amount: Money): Receipt"] }
+    ],
+    "relationships": [
+      { "from": "customer", "to": "entity", "type": "inherits" },
+      { "from": "order", "to": "entity", "type": "inherits" },
+      { "from": "product", "to": "entity", "type": "inherits" },
+      { "from": "customer", "to": "order", "type": "association", "label": "1..*" },
+      { "from": "order", "to": "item", "type": "composition", "label": "1..*" },
+      { "from": "item", "to": "product", "type": "association" },
+      { "from": "order", "to": "status", "type": "dependency" },
+      { "from": "card", "to": "payment", "type": "implements" },
+      { "from": "paypal", "to": "payment", "type": "implements" },
+      { "from": "order", "to": "payment", "type": "dependency" }
+    ]
+  },
+  "er": {
+    "title": "E-commerce schema",
+    "entities": [
+      { "id": "customers", "name": "customers", "fields": [{ "name": "id", "type": "uuid", "pk": true }, { "name": "email", "type": "varchar(255)" }, { "name": "name", "type": "varchar(120)" }, { "name": "created_at", "type": "timestamptz" }] },
+      { "id": "orders", "name": "orders", "fields": [{ "name": "id", "type": "uuid", "pk": true }, { "name": "customer_id", "type": "uuid", "fk": true }, { "name": "status", "type": "order_status" }, { "name": "total_cents", "type": "bigint" }] },
+      { "id": "order_items", "name": "order_items", "fields": [{ "name": "order_id", "type": "uuid", "pk": true }, { "name": "product_id", "type": "uuid", "pk": true }, { "name": "quantity", "type": "int" }, { "name": "price_cents", "type": "bigint" }] },
+      { "id": "products", "name": "products", "fields": [{ "name": "id", "type": "uuid", "pk": true }, { "name": "sku", "type": "varchar(64)" }, { "name": "name", "type": "varchar(200)" }, { "name": "category_id", "type": "uuid", "fk": true }] },
+      { "id": "categories", "name": "categories", "fields": [{ "name": "id", "type": "uuid", "pk": true }, { "name": "name", "type": "varchar(80)" }] },
+      { "id": "payments", "name": "payments", "fields": [{ "name": "id", "type": "uuid", "pk": true }, { "name": "order_id", "type": "uuid", "fk": true }, { "name": "provider", "type": "varchar(40)" }, { "name": "amount_cents", "type": "bigint" }] },
+      { "id": "addresses", "name": "addresses", "fields": [{ "name": "id", "type": "uuid", "pk": true }, { "name": "customer_id", "type": "uuid", "fk": true }, { "name": "line1", "type": "text" }, { "name": "country", "type": "char(2)" }] }
+    ],
+    "relationships": [
+      { "from": "customers", "to": "orders", "cardinality": "one-to-many", "label": "places" },
+      { "from": "orders", "to": "order_items", "cardinality": "one-to-many" },
+      { "from": "products", "to": "order_items", "cardinality": "one-to-many" },
+      { "from": "categories", "to": "products", "cardinality": "one-to-many" },
+      { "from": "orders", "to": "payments", "cardinality": "one-to-many" },
+      { "from": "customers", "to": "addresses", "cardinality": "one-to-many" }
+    ]
+  },
+  "sequence": {
+    "title": "OAuth 2.0 login with PKCE",
+    "participants": [
+      { "id": "user", "title": "User", "type": "actor" },
+      { "id": "spa", "title": "Web App" },
+      { "id": "idp", "title": "Identity Provider", "type": "external" },
+      { "id": "api", "title": "Orders API" },
+      { "id": "db", "title": "Postgres", "type": "database" }
+    ],
+    "messages": [
+      { "from": "user", "to": "spa", "label": "Click \"Sign in\"" },
+      { "from": "spa", "to": "spa", "label": "Generate code_verifier" },
+      { "from": "spa", "to": "idp", "label": "GET /authorize (code_challenge)" },
+      { "from": "idp", "to": "user", "label": "Login page", "type": "return" },
+      { "from": "user", "to": "idp", "label": "Credentials + MFA" },
+      { "fragment": "alt", "label": "credentials valid" },
+      { "from": "idp", "to": "spa", "label": "302 redirect with code", "type": "return" },
+      { "from": "spa", "to": "idp", "label": "POST /token (code, verifier)" },
+      { "from": "idp", "to": "spa", "label": "access + refresh token", "type": "return" },
+      { "else": "invalid" },
+      { "from": "idp", "to": "user", "label": "Error: try again", "type": "return" },
+      { "end": true },
+      { "note": "Tokens are kept in memory only", "over": "spa" },
+      { "from": "spa", "to": "api", "label": "GET /orders (Bearer token)" },
+      { "from": "api", "to": "api", "label": "Validate JWT" },
+      { "fragment": "loop", "label": "for each page" },
+      { "from": "api", "to": "db", "label": "SELECT orders LIMIT 50" },
+      { "from": "db", "to": "api", "label": "rows", "type": "return" },
+      { "end": true },
+      { "from": "api", "to": "spa", "label": "200 OK (orders)", "type": "return" },
+      { "from": "spa", "to": "user", "label": "Show orders", "type": "return" }
+    ]
+  }
+}

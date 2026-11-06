@@ -1,0 +1,18 @@
+drawman
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party artwork
+-------------------
+This repository does not contain vendor icons. `npm run icons` downloads them from their official public sources
+into src/engine/icons.json and records the exact source, license and SHA-256 of every icon in
+src/engine/icons.sources.json. Built packages (npm, .vsix) embed those icons.
+
+- Google Cloud icons: https://cloud.google.com/icons (Google's terms for the icon pack apply).
+- Microsoft Azure and SAP BTP icons: the icon libraries shipped with draw.io, https://github.com/jgraph/drawio
+  (Apache-2.0; the vendors' own terms for their product icons apply).
+- GitHub, GitHub Actions, Docker and JFrog logos: Simple Icons, https://simpleicons.org (CC0-1.0 for the SVG data).
+  All product names, logos and brands are property of their respective owners and are used only to identify
+  the products they represent; their use does not imply endorsement.
+
+draw.io and diagrams.net are trademarks of JGraph Ltd. This project is not affiliated with or endorsed by JGraph,
+Google, Microsoft, SAP, GitHub, Docker or JFrog.

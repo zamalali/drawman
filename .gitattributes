@@ -1,0 +1,6 @@
+# LF everywhere in the repository (skill/plugin front matter and shell scripts are parsed strictly on macOS/Linux).
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.vsix binary
+*.tgz binary

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.log
+*.vsix
+.env
+.env.*
+!.env.example
+diagrams/
+# generated from official sources by `npm run icons` (see NOTICE)
+src/engine/icons.json
+vscode/dist/
+vscode/node_modules/
+vscode/LICENSE
+vscode/NOTICE
+*.tgz

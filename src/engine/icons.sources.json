@@ -1,0 +1,1117 @@
+{
+ "alloydb": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_sql.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "ffdf8329a098d53313f4a8b10449b33e1cf9f139aaeb4a53e6564c1fad6b8b1b"
+ },
+ "api": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (api.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "b4a914d5282d0e57163d0fba5a698496d741bcdb6505efc5aace4c53b0621729"
+ },
+ "api_gateway": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_api_gateway.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "0b43369a39f5c53c9307e6664c3783c4bd95e87d14ba210a44217eb8eebc3ce7"
+ },
+ "apigee": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (apigee_api_platform.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "dbcf2a1cadc13bea24cd9ffb004151685509248d1f7458af8b9be781b5b0b71a"
+ },
+ "app_engine": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (app_engine.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "df6ddd07fef65c4ae1c96763b18de18c72a6f50a799d9079d6f59f88540c0c62"
+ },
+ "artifact_registry": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (artifact_registry.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "f12916d3a2b3fcab588c475f35200a4f9db6cdde421e7dacac8ce7c4c55a72f1"
+ },
+ "aws_amplify": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Amplify_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "d429ca12d0e36f4ecd342b30303e2b205af92bb10114b0ae66ca39e67cda8561"
+ },
+ "aws_api_gateway": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-API-Gateway_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "08f0cb8f93f8d390425d3925054004c17422cabb7eee14edbabe238e678278af"
+ },
+ "aws_app_runner": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-App-Runner_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "6951c996d3a5df91e658700386c3e68236848f8b9f744d91b33626344a2c9976"
+ },
+ "aws_appsync": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-AppSync_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "8df85575847a65452bf6cc85a32755e144a68830e8ce983466e1fda018fabd88"
+ },
+ "aws_athena": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Athena_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "5644ca441ec8fea1519218ac70d998c97358855d9f28598f7db5910d625ba4bc"
+ },
+ "aws_aurora": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Aurora_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "d222f2a71889a437005b20291a5eb6f59de02b74e3f0ec836e0f58bb7ad3ec3b"
+ },
+ "aws_batch": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Batch_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "f8e1466957013d4b8cd8bf90f75ebf5c3475cdde6df314daf27d0235ba24f3a8"
+ },
+ "aws_beanstalk": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Elastic-Beanstalk_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "79d0808e006ccae23af10b2862407af43962383ab874f2f03a73264c4704eabe"
+ },
+ "aws_bedrock": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Bedrock_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "01c39972d595d848ffc91d31aa6087b033c65279f8416c7c9a6659bc54406182"
+ },
+ "aws_cloudformation": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-CloudFormation_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "37a07518c8163299a791387f613cf399ed3a6beb3c52158eff1a45c78726b5d0"
+ },
+ "aws_cloudfront": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-CloudFront_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "bdea6b292bb1b482f96b788d955adc2d84ce987ad1c2b7d6c719ae31ca7dbb94"
+ },
+ "aws_cloudwatch": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-CloudWatch_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "9920f2db47fed7e2437c329e8b231edcb0f55db82f02413afa3f2d546c30d552"
+ },
+ "aws_codebuild": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-CodeBuild_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "bde1dd403aca780551e984a45ebbfdb0332de1ff5509687c4b1134f516827c48"
+ },
+ "aws_codepipeline": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-CodePipeline_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "b443f1ef8b5926b8fe5236766938ceb040e422e21bc5f584cac6c442052120ef"
+ },
+ "aws_cognito": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Cognito_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "66a89c507aced4afefe99d39fa7d5b7bd22e3f6bed03f511a031bf44f57f34ce"
+ },
+ "aws_comprehend": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Comprehend_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "e9028bfe01842c8a3291495bb2b5c0014d14777706415de50ce90d145de7328f"
+ },
+ "aws_documentdb": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-DocumentDB_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "9467b9131bbbb38d47c6812b61a893bf5e49a1bf5389b7f72b22d8e5cac22c91"
+ },
+ "aws_dynamodb": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-DynamoDB_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "c336f941abcb25012c6e36fd884123a868d0727cf916d6f2348b0fb0a053f2f0"
+ },
+ "aws_ec2": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-EC2_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "099dff32b3f795f3fa8ed97f0466708502a7fd6500136679899a0cec5a5a2473"
+ },
+ "aws_ecr": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Elastic-Container-Registry_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "bf829eab882165f4fb850bab032e5c81312cb579e2ad880372f206936db4a2be"
+ },
+ "aws_ecs": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Elastic-Container-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "7f8b2883cd6171a42bdcafab2d20d17c3cf886d306c62846c6c555ad26463b04"
+ },
+ "aws_efs": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-EFS_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "82f8c32b68799a33b3c6737920d492493e6d293ba58caca65cfd6f4056a80e68"
+ },
+ "aws_eks": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Elastic-Kubernetes-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "83125d0b8a7920b7a13381a8645aacb4efa5ea7a0af3049949e4530491b46ca8"
+ },
+ "aws_elasticache": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-ElastiCache_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "13613f97e4b57b0ad79ffacb9def422cae3e8cdc5aaa302b1452828fc8ff4915"
+ },
+ "aws_elb": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Elastic-Load-Balancing_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "8eca01663c238c8685ce5b397d2b0ef49c00ca963023ba7ee80866ed5a620b74"
+ },
+ "aws_eventbridge": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-EventBridge_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "78f7fead59316ad6ac38cc262582bec81fc6649d0f6fdd5327708c08bede65e9"
+ },
+ "aws_fargate": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Fargate_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "2b1b00e6e702e9bd1a1cc8bba077e05f214889c145186b9a44c28a74943b38ce"
+ },
+ "aws_glue": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Glue_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "f98d18c9698d54ecf10b6d05ddc80b4da8c22fa2a28f8d1795e5a9c182dd3f90"
+ },
+ "aws_iam": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Identity-and-Access-Management_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "81954dcfb86d5f410f7084345e459cd5c7ca1d76032d34f771ad379c94e062b6"
+ },
+ "aws_kinesis": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Kinesis-Data-Streams_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "d007fb1e2ebfb5b5577beb536b21e6ae055b08bb6e0ddbf0b257409bf96aeb3d"
+ },
+ "aws_kms": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Key-Management-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "5655b1815bdfe9ea75a26c702efaac8d884884cccb3b306f75e54d6f542a325e"
+ },
+ "aws_lambda": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Lambda_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "4a376abd2d67f8916791458810f3640b12fcfa71079154e0aed0974b92e58cdb"
+ },
+ "aws_msk": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Managed-Streaming-for-Apache-Kafka_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "ae5bbfe39e47140324f1fa1056f1d1a15485d064d13734c569734e03e4f35b13"
+ },
+ "aws_neptune": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Neptune_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "4bad4a09ff4efcf214e1d3e7e8c2e45efb2d4e30b2d6e66b3952c06ca33b8f5b"
+ },
+ "aws_opensearch": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-OpenSearch-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "459225008be72208cb484436b4c0c0eef19935a255ca197bf51f4ed718dd818f"
+ },
+ "aws_rds": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-RDS_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "5ef651fae418df2ceade6bf9cbf779d8c8f2ec35c6ff47b23934b10722b6790e"
+ },
+ "aws_redshift": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Redshift_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "b2a267bb27552a7608cae3cd0284b5617498848a273a2ef752f9dcb338312b65"
+ },
+ "aws_route53": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Route-53_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "624f55ebfca201a7a69a4037baabed2fafac0a99ea05d5089efb5b6bf1819f5b"
+ },
+ "aws_s3": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Simple-Storage-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "bb0df5b7ca52da7323888ed588baefa1c68a23b5776f325bc8ec29825c185a31"
+ },
+ "aws_sagemaker": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-SageMaker-AI_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "4de353e8d39d0f5b39e5e707e9e9d6458cc818be8d5e5a302d30bca6441fd207"
+ },
+ "aws_secrets_manager": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Secrets-Manager_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "0258cbde7033b45683db4e814980f5871d3e88fd8490ad9e9f3f531049fffe40"
+ },
+ "aws_sns": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Simple-Notification-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "f0fbc241cafdf4d6d06b0f46a7bba9325339480c61fd5f62195e3db63c7582b9"
+ },
+ "aws_sqs": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Simple-Queue-Service_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "5b3f5beb065cd76e4a6ac65a24437aee2bd51000f6b749bce69bbaba45d73b75"
+ },
+ "aws_step_functions": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-Step-Functions_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "c1bb81d6504d283c6b31cbd9516fa6b8364010ea3c30ae614507114ca34192ad"
+ },
+ "aws_textract": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Textract_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "134631674d3b0b81dc4eea89aef3a6e5bf9c504054523bc65c368f4a6bc585e2"
+ },
+ "aws_vpc": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_Amazon-Virtual-Private-Cloud_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "7b842e6a64b2238b159d2470e9dc2389f0d1d373a2236abe20aed971b1f69ded"
+ },
+ "aws_waf": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-WAF_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "e67f918f21cf5fab0846faea3dfa703c9f167275da408c3b4e5f423e3e4ec24a"
+ },
+ "aws_xray": {
+  "source": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip (Arch_AWS-X-Ray_48.svg)",
+  "license": "AWS Architecture Icons, see https://aws.amazon.com/architecture/icons/",
+  "sha256": "49c3a0c3f4e8a4e774492dfbc8c86869c593e33060b2f58a7ec4e483e52b161f"
+ },
+ "az_acr": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/containers/Container_Registries.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "5abd2c16d2d9d26baf67ebbd0ae4f0f9131fb49a2236a5ece5a9bc3b13018620"
+ },
+ "az_ai_search": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/app_services/Search_Services.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "1567e37f4ea2d17c12cdc9f1dc9f7c858256a40f3c0f66827063ba324ed7bb26"
+ },
+ "az_aks": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/containers/Kubernetes_Services.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "768bcd41b0a4d689292e63cb9f5ca806e0cf02c5efcff8588c7dd22bcf7a54bb"
+ },
+ "az_apim": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/integration/API_Management_Services.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "b00bfe4e33704a264b4c570f39017b602be41c6ddbbb46a6092b79394544c989"
+ },
+ "az_app_gateway": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/Application_Gateways.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "514d11244c6c86bd0349fce0b014498b1278f707dc25e71764ea4cdd7f25fb3a"
+ },
+ "az_app_insights": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/devops/Application_Insights.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "8f7de32cfe8e7b65e9fc49aa3fcca9754c8dea1ecf37c6bb22b6607f8041fec5"
+ },
+ "az_app_service": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/app_services/App_Services.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "2f345cd7bd7fd681f9d2e7b5ad5b198de69f292f8a2e1130e67779990e1d5eea"
+ },
+ "az_batch": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/compute/Batch_Accounts.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "91f214955e58d76bfbdc4eb4735ab64950b4b34b4c12d93cdf4385b33735c5ff"
+ },
+ "az_container_instances": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/containers/Container_Instances.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "fca5deb190ce375bcacc7bb50406b2e9719b5f192a5083c04465f4c6d875a769"
+ },
+ "az_cosmos_db": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/databases/Azure_Cosmos_DB.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "f9cb9e3339295eaee49947b59f1ad780b40b9ba413ce0e85dd19d0338565a267"
+ },
+ "az_databricks": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/analytics/Azure_Databricks.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "97e8c370db6602b1df14189d3d9347eba84149bcd5ed80e0e559eb6f6c58cead"
+ },
+ "az_defender": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/security/Azure_Defender.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "9d9a410abdad0c3b16e3136c35561ef501ff203a46108d1bd317e7cda992886e"
+ },
+ "az_devops": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/devops/Azure_DevOps.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "bc2f9374d4077443375b5b84593acece8216ffb504905d3f7f45a6358f44b5d2"
+ },
+ "az_dns": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/DNS_Zones.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "811d727a9bb29c4bbcd7be6bb5d3ff65bc69b84f358eedd53d5f6c1b224a4fb0"
+ },
+ "az_entra_id": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/identity/Azure_Active_Directory.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "cbc868ea674a23a8160cd89561828f06c9d0882f1edb0fed46d9ae97fd72e307"
+ },
+ "az_event_grid": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/integration/Event_Grid_Topics.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "fb4f48541f67f788b06648cdf5313025c386d57e291ca8d5940f9f845f8922ac"
+ },
+ "az_event_hubs": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/analytics/Event_Hubs.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "ccf94f33486cbbd585e70b66980ea7bf56ad7fbcb93dfcb8e34f83d485013106"
+ },
+ "az_expressroute": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/ExpressRoute_Circuits.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "11ff053b860e32b4274f61f04bfed4789c7303c01516f9571982fd97edca76be"
+ },
+ "az_firewall": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/Firewalls.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "053d34ab57a35418de455e022dae4ca69e486eacb843a7b4fcbfb8804ed12da6"
+ },
+ "az_front_door": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/Front_Doors.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "8394ba7e39ab65ba372f684506da061586d0ab9d5c08e59de1834146034166ba"
+ },
+ "az_functions": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/compute/Function_Apps.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "2365771dd0d4cf236b4a7393a401bb5705d3b0708997eb1ea6164ceb905e036e"
+ },
+ "az_key_vault": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/security/Key_Vaults.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "67a2d3e45df9a8cc2f553beb64bc859d1f7dd437ec0b41cebab347b52c6a2f7f"
+ },
+ "az_load_balancer": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/Load_Balancers.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "1fd5fccc458bedcf22b8b7f8daa5e201f21400f5017e140045861f9e4db76a0b"
+ },
+ "az_log_analytics": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/analytics/Log_Analytics_Workspaces.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "333f8dd95e191771656e62f7ad710734a79b2f305aebfb41eea1fd2223e32ebf"
+ },
+ "az_logic_apps": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/integration/Logic_Apps.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "06b7101e1e1853e27cd84f49f04d4a8f90e3c7c8cf18cd4ed94f2dc309c7d519"
+ },
+ "az_managed_identity": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/identity/Managed_Identities.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "d4ef66d4f3b9e451a9ec45e70e0f469a3cb9bed0a2dbc6f32051bb9c97348f9c"
+ },
+ "az_ml": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/ai_machine_learning/Machine_Learning.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "dd6838b2a7cb9344b57a449f69f5980a052e042abbfd60a28663e207b7ef6727"
+ },
+ "az_monitor": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/management_governance/Monitor.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "985c5d8b7d646917fbde849cd5d3d5b295a43076fb366dbeee41124682dd7904"
+ },
+ "az_nat": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/NAT.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "17d25bcb503c1b7e2de39d04f2c5eebaf638b8c1e535fc009c492a83c714a6af"
+ },
+ "az_openai": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/ai_machine_learning/Azure_OpenAI.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "7cd13eb8126adef31bba10db44e3379ce90a7475fd5e76c9913eef1658a5b46c"
+ },
+ "az_power_bi": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/analytics/Power_BI_Embedded.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "8a16a630f6704a17112721d9160882a7354fc31ed830411add1f73ea7ea67629"
+ },
+ "az_private_link": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/Private_Link.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "841f9d562b614011a53efb592a3e0413e88673d1a438b1e36d5e14ac403d1d44"
+ },
+ "az_redis": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/databases/Cache_Redis.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "f5bce354870a22bfec08f44f5b5559b3aa276af73fc4ff9c29ead0979ddb8619"
+ },
+ "az_sentinel": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/security/Azure_Sentinel.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "912b8eb8b23666a90c79f44df8052a9487f36d43aadf24bba0e1255af894a897"
+ },
+ "az_service_bus": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/integration/Service_Bus.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "aac9cfa217258c3d0e7543abd35a366ca9de4a0181e67b1174bc8bb5570195d2"
+ },
+ "az_sql": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/databases/SQL_Database.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "956c95674f7487fa66e024660387ada06546017ecd7a64d8984318392eba4e3e"
+ },
+ "az_static_web_apps": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/preview/Static_Apps.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "7b85eca04f4dd8db6f1bafc4df18e689ca282aeec4b296a9bbc47c6b92c033f9"
+ },
+ "az_storage": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/storage/Storage_Accounts.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "098f82d9e8155f38d52eaff9fe8826bfcbde08c4d8f4715c6f23c69697d00e34"
+ },
+ "az_synapse": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/analytics/Azure_Synapse_Analytics.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "4b1373883f5b72dfd382e02f94c84b9f4ff7fb405ad21914464c0fe5307b2a3d"
+ },
+ "az_vm": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/compute/Virtual_Machine.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "665c9ffd3b15f4feafb699c2c98565affef5bfb887e48f10feee8fdf01685f30"
+ },
+ "az_vnet": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/azure2/networking/Virtual_Networks.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "bab12ca26e4bd84b70ba66a361eadd167f444491b51ba2e91636c949e317865a"
+ },
+ "bigquery": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (bigquery.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "e1791cc5897c2e3b2e92cac472a5dd4ba2aa09e5d52b7d01efcff9f4e402d1e3"
+ },
+ "bigtable": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (bigtable.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "88120688828ab2f3e14dcc0edccb2e6e9c6dbdddc44b5287bf9fe2e67f727b7a"
+ },
+ "binary_authorization": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (binary_authorization.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "db216c1a0c09ecaf88b49c865aad0fe14d92edddbdc59087d069f90408f1751f"
+ },
+ "certificate_manager": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (certificate_manager.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "559ccd229f0a6a0023fc282206dfdf000fe69afaf028c36c210f7cbf66d949a1"
+ },
+ "cloud_armor": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_armor.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "69f0e9c8d64b48cdeba1679922dee5e8ebf73747d18ceb553faebeebb0c15711"
+ },
+ "cloud_build": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_build.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "2fbd6afc341de33de94ae428b4e50690c959f9ec57d29dafcc6c03eaa260c3e8"
+ },
+ "cloud_cdn": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_cdn.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "9138a21222f0eb31c6d61d6481b6d61b1f8d7dd05d19508d91af2ac6ca88b64b"
+ },
+ "cloud_deploy": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_deploy.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "6bb1066ea1363b69b2dc056f8c6d1c446439cbfb1bc3a181c27bec5674a622b2"
+ },
+ "cloud_dns": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_dns.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "c7908fbe9f86108c969c2df1494d825c6f1d9f83133a84e64a8860615f0906b2"
+ },
+ "cloud_functions": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_functions.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "4083203f7fc949eca008ad06b9495d89c3ceff7b3980948f6093bd4e7db4d734"
+ },
+ "cloud_logging": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_logging.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "f7fdd93a1847fdebf174c78cce418fac52198be72893116e7787ca3e1659cf38"
+ },
+ "cloud_monitoring": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_monitoring.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "804f66b773fcc5cd59a3fb8e0da9ff3de9b69efa99c23f8e1797943647a8e79e"
+ },
+ "cloud_nat": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_nat.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "88428f716fe11510dfadf80e5fb356d3d62dac524705553df19a8c82064a00dc"
+ },
+ "cloud_run": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_run.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "97e1db08021eecae2a8c5124f382a9b451dc63deecaa87825dc5b396fab59c37"
+ },
+ "cloud_scheduler": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_scheduler.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "f1880ba2be9c1f294af12a7c0594d535f94e860ea9a5262eb94236b133fce5f9"
+ },
+ "cloud_sql": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_sql.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "ffdf8329a098d53313f4a8b10449b33e1cf9f139aaeb4a53e6564c1fad6b8b1b"
+ },
+ "cloud_storage": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_storage.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "2528d1bf4dce824c66e5a1421e22e1153e0661b296a48d310886d5cd09921fef"
+ },
+ "cloud_tasks": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_tasks.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "7e74840375dd10029a99e6ce25e41d38c4caae4f13c7af7a8f54fa699823cfbb"
+ },
+ "cloud_trace": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (trace.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "c8434efa76a4d0d1bcf29e5a2d1d7d520efec8c6c6e4faf7655a423369471405"
+ },
+ "cloud_vpn": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_vpn.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "868f5c9e0f72db83c0e7fe4be462433ddb98fc6d4b81aff6c5eb42fa44fd3116"
+ },
+ "cloudflare": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/cloudflare.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "32876bda81542203316d67b9623818ac60986897cac79f70e03e8f31f7b7f160"
+ },
+ "composer": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_composer.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "3066a9dadb30f601a2820f27390ceab132c97526415c0ce4e8b2b34ed8d4248a"
+ },
+ "compute_engine": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (compute_engine.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "080178278d06fc5f87e180e8066a212c5d75236e2d11aaf02d40ce31756872a7"
+ },
+ "container": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "f8730c11ff50ef90d3fd1fdc07c5563fcb4aeb6d388d5653665f2847875c1e87"
+ },
+ "data_loss_prevention": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (data_loss_prevention_api.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "3b167444bc71bfe226400ea058aa1162a1bdc63ed767a2369a5ff5e1f216a299"
+ },
+ "database": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "28153955246f6fbcbfc276c09ded171a7bcc3329114e609fe179d78095b6d590"
+ },
+ "dataflow": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (dataflow.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "936ae0c8f4eaf5517f00948ab41607d6b6a222f2b9d32a4810825c73644d17fd"
+ },
+ "dataplex": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (dataplex.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "03ec1d6b4cc32165a1a1ef788eab015adafac37cc73e8bb32308b0684da7ccff"
+ },
+ "dataproc": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (dataproc.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "44e3b84f3312ddceaa4bc959fe14f1d3e054d648fa4e3f420c3857aac4e43e7c"
+ },
+ "dialogflow": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (dialogflow.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "abe7d410df23d6d2facff15cd5826bf9d05ce4d4e15490b9dad24dbfc8486f0c"
+ },
+ "docker": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/docker.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "ba1fb157870b2ec02e054aed42154ac7418e25af91ec321fd328d17cad4023cd"
+ },
+ "document_ai": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (document_ai.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "e923224022c7aab231ba0e979cfa22ed66abc1a94d047c88d81d104268daff08"
+ },
+ "elasticsearch": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/elasticsearch.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "698802b0b724880c41eb3fa8715f29891debf93a85d8fb71e39f230a6a37f727"
+ },
+ "error_reporting": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (error_reporting.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "5e4712c2de808451055a2997891954d1d98fca38ab2076a2410c58800189f28e"
+ },
+ "eventarc": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (eventarc.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "6c79e4660b5196c064a4dce7f54b2cacfdc25836bfdb2548b9767d5227862248"
+ },
+ "external_source": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "e378115f46d24184470a06545aec9a1e507e5016cd351fd12b55d85367da6616"
+ },
+ "filestore": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (filestore.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "cf0dddecd33f3c2a24fa02c238eb9ea9312776e6cd9ef490a612bdf99cd6b309"
+ },
+ "firestore": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (firestore.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "2452104b804806ec196f0cac9bb1f8c74884fede904f94f2adf8c7df4256c9d1"
+ },
+ "g_data": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "5ef35712288961d2e4187bc31cc7f54585a35478204d7e2739f74dfdd6c29396"
+ },
+ "g_decision": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "78e3207f5d4a057ee18292a0ba9ab0236c06d1db0fa9d99c5f7c48144892f057"
+ },
+ "g_document": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "334c7d1f0d217a280de7df33ce08778db5246957edb85a0019278952236dcd9f"
+ },
+ "g_event": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "6370ea78dd4f252a7f383ccc48cca790789a882b83d999186a276831079cf11e"
+ },
+ "g_layer": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "c09f8b9e0e2ac8871f86f1e1ab676f428a0ddbf7f2ced17895c75e8764f79047"
+ },
+ "g_math": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "79aa6f889c1160dde0f246b23d3a9477cf27031069e90288aa39cf5dd8438ba1"
+ },
+ "g_model": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "4710c8b870ad46e7b747f5e993d64ac08ccef7f9874b770918c5bae8c03109e7"
+ },
+ "g_process": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "08aabf970cd269381c6b9677a3143466b0940fd8567a60b16fdc8165985cecc0"
+ },
+ "github": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/github.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "476ba7aa67b86da7d6e7567b08a4bf0eb1a2fd28da5fc243f8ee39a2f1ea6773"
+ },
+ "github_actions": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/githubactions.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "68e27a7570b9e0f18a1f85d84d211f3328d845dfac8ce7e101ec16576c67db5b"
+ },
+ "gitlab": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/gitlab.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "3bbfcd2707b9cd5bc6d68d561da605c520a707ceaecf3912aede560bb0990e27"
+ },
+ "gke": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (google_kubernetes_engine.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "5f44dce3df0483bd0b1a344be07129e054f61cb5fa947aea022db3441c25db5e"
+ },
+ "grafana": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/grafana.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "fd70ea7298d67665cae32bdf1721fa7bd0b6b79b6f7cd8da1e3f77c97bbcdcc9"
+ },
+ "helm": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/helm.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "d20ba770d3767e58b86891829aca215aed8a7b98135fbcef3148aff8ffbeb761"
+ },
+ "iam": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (identity_and_access_management.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "16642a394d5eb28be4ea688870dd6cbbcb943b14a1360ce09ba3a03d561fc1eb"
+ },
+ "iap": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (identity-aware_proxy.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "69bb9cf492b5d9249257826b8c84fe65579b3467f38728344b02f2bbba3fb977"
+ },
+ "interconnect": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_interconnect.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "c8f10842213b314b4e31053a138013f292ee65f2b40a056da31e283a854fd658"
+ },
+ "jfrog": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/jfrog.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "95086a2992c317d9895e66abd30b35871fb0e2c6c61a983b26339a3227fb5bad"
+ },
+ "kafka": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/apachekafka.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "e64804c91c53daee5ab4c83f466b90b3daca2e219d91deab06e68ccae06d7d3d"
+ },
+ "keycloak": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/keycloak.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "7cbf5d1e2aa0349d95b44a9feb587c2881f1aa912e18da1da7d9e4b0895e6278"
+ },
+ "kms": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (key_management_service.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "036eeb3ddef1f08b8e799dc421a640d67632e0c6404edd290817e84b904eaa58"
+ },
+ "kubernetes": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/kubernetes.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "76037c7167ffdf86e7e014871ba0f42faa38e016c4e5a40aa3b3b011ce789587"
+ },
+ "load_balancing": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_load_balancing.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "ea8974dc8766309a616bc10c09c0f630c0ff6a5bb1e9664cc17c4fb1ec29ef11"
+ },
+ "looker": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (looker.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "4b1c90b24d4a5170a815127a68859877ace8d9a824e9b9d1ef8dfe5215f31ab1"
+ },
+ "memorystore": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (memorystore.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "e1e14c0fa7a2a155cd5626226ea7b49b933641d384c86aa38b1a4fd9470fab6a"
+ },
+ "minio": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/minio.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "02b56d9139142b63226dac1e07064b56d4554b7c335a01931e9ebfa84d3dc812"
+ },
+ "mongodb": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/mongodb.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "cf259f556e99f2df9056e60f34ef0eed3eeb4d096dec34f251b0f7a3a5c76fdd"
+ },
+ "mysql": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/mysql.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "df58ab1e11500e6862bb2c53fbbe688e21b40758cd09090f2283649268f27872"
+ },
+ "netlify": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/netlify.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "f2d591c3a629c6ff7fa122646710526ed711584890dc1aeb9e864c2746f973f1"
+ },
+ "nginx": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/nginx.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "14e77ea88f50ee3ebcf43919b91e545292673ec35b21bee32ad1f230ee5004bd"
+ },
+ "object_storage": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "9350a5845ba30d1eff654bdb4966c1782b150a79b0910ed9b8fe781e4b732747"
+ },
+ "postgresql": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/postgresql.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "bc45b1c56d0b1501dea387dbec4fda450d2ebc35244a620791815509d8c41dba"
+ },
+ "private_service_connect": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (private_service_connect.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "afa5eaa1a3f17d3c0d6a32a7f617253a1b7724f5b47ec080d99f7792c7b42acf"
+ },
+ "prometheus": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/prometheus.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "aae7efa90a77c233d051d1d5a8b1ed9e78f39d357364be8c2f1d9383a476d027"
+ },
+ "proxy": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "af5866babf15ec75f41af063538facb5956a35edf549bdf8ff19d47551901ff7"
+ },
+ "pubsub": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (pubsub.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "bd71cb16b24c5a368fc7913525e093f03e426d06e8917c1f255187e9f6c10217"
+ },
+ "queue": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "49b32364093abb9b92e3becac078a9b768070e092008d5be1a5ed05b6507e0f6"
+ },
+ "rabbitmq": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/rabbitmq.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "449b269ad68813ee98dc472d8aa5c15a0c42111030fdb0cddcdb6ec42308cedf"
+ },
+ "redis": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/redis.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "4245419834dd111d83a8ed645a2e305c67faa0af5c5b864eb5f0991de156034c"
+ },
+ "sap_abap_env": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_BTP%2C_ABAP_environment.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "a564941824394dcbf9160afe8bcdec1af09c7da284506ada50096ccceaf59185"
+ },
+ "sap_ai_core": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_AI_Core.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "e12f010e6dffc8bc2e6fa586d689c30ec466bca1e8cd40a77807628aa624ebe4"
+ },
+ "sap_alert_notification": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Alert_Notification_service_for_SAP_BTP.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "f37559db884dd0f8eff90985ae456c6167ea65843147f0e7f23b7c2d227fbf6a"
+ },
+ "sap_analytics_cloud": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Analytics_Cloud.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "99609f12252ee02b26a8399b6ff4ea54b98d895261d66e6bc1353fd03fab1be2"
+ },
+ "sap_api_management": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Integration_Suite_-_API_Managment.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "0e942ff36adca527b9186cacfcd86d0372263d5f9807219b4fd4a42c72f5dc15"
+ },
+ "sap_app_frontend": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/Application_Frontend_Service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "3de9212888c5d2718941174c60d67084bfc86d4f5fff887e52a383ed9b349516"
+ },
+ "sap_app_logging": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Application_Logging_service_for_SAP_BTP.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "a138d452b4644943830df3361f7bbbe7caf8edd30a7250f1cd12ef45ff3835b8"
+ },
+ "sap_audit_log": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Audit_Log_Service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "67bd958cb9eededeee72efa804ef096c901dd1ecdf584229a09fd3c1f4547575"
+ },
+ "sap_bpa": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Build_Process_Automation.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "b620d6a3c86c26f4383490a47b2a06a0fc12d27a6a5e90b2c53575cdede178e9"
+ },
+ "sap_build_apps": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Build_Apps.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "f9102bd07df47f6b95034cf765323293384d678eb63058d0395583d855633d3a"
+ },
+ "sap_cap": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Cloud_Application_Programming_Model.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "b07583ad280b2ddec219a5c3616782ac3d95f98226c3f30f22d14d4809e32655"
+ },
+ "sap_cf": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_BTP%2C_Cloud_Foundry_runtime.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "f884e19f01f86d5a1dc7f788ccf1f64ec83a033c02154e015fbb4fdd946c996b"
+ },
+ "sap_cicd": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Continuous_Integration_and_Delivery.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "624987d85caaf41f8bb7cad3af8034d08089e71ebcf76e385a6b2b83c423df54"
+ },
+ "sap_cloud_connector": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/Cloud_Connector.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "30966e1a589bac87b7fb66c1a0ac1551e09378935c3fde9c837d065550f21fe4"
+ },
+ "sap_cloud_integration": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Integration_Suite_-_Cloud_Integration.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "61f23a7f3e3ef77ef3e1946b17cd2897b02fa9f01a35da195632467349902a0c"
+ },
+ "sap_cloud_logging": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Cloud_Logging.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "ca2a12f76bc3469a61eb8baadabf1447f181c4fdbe407c6dbcfe32ae0d7f5438"
+ },
+ "sap_connectivity": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Connectivity_Service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "3be0062b7dd2a6e19c428b1c362d5dd3337022e6c390d27ef321ff5c0abbf621"
+ },
+ "sap_credential_store": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Credential_Store.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "be1d894f5033361c8c67db2827285f740abcffc6dd79a6ad3b12a6192974611f"
+ },
+ "sap_datasphere": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Datasphere.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "068cb05c9f4ce82de4700f64e30f67721854f8b81073c8758cc14c259ec6fb26"
+ },
+ "sap_destination": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Destination_service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "53f74e571b5eaa7f8c382b37a539bfb041a06b76a9853be262895a5c7c955825"
+ },
+ "sap_document_ai": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/Document_Information_Extraction.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "c267e892c2ade69e90889236dd875cbc2435873c8bd1047481bfef521e0aca7c"
+ },
+ "sap_event_mesh": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Integration_Suite_-_Event_Mesh.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "d011fcb54899ff61ceb6d2fb6e13a92141f0bab7cd80838266a344664ccf2027"
+ },
+ "sap_hana_cloud": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_HANA_Cloud.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "0afe42a1e5e2d3a5c7346074f388fae0cba6c4c15dff6d9416d63efd875f00a1"
+ },
+ "sap_html5_repo": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/HTML5_App_Repository.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "9fdab59cd2a9e403e9226a888a3a57a35e3c227d71265f49d81defa03a020827"
+ },
+ "sap_ias": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Cloud_Identity_Service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "3b9f2471edbce9aad3c1c0a043df295249083cfe8ddaa7663eaae833e0354cd6"
+ },
+ "sap_integration_suite": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Integration_Suite.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "493212871d3d0d0e85ddbd10854f6d614ab1f28c78844dbaaf8aeebe0f20a932"
+ },
+ "sap_job_scheduler": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Job_Scheduling_service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "506e354e6dc140eb5a5914fda5448cc04f28b116ae276da09722be28dc3865a9"
+ },
+ "sap_kyma": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_BTP%2C_Kyma_runtime.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "64d4f5fe2c7aceb5f9023f9680e521a4ef691dc8be93df704831612863d75785"
+ },
+ "sap_logo": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Logo.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "c233da37b28f0a77fb09243066454134084304a7afc330ff8dee67b961963926"
+ },
+ "sap_mdg": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Master_Data_Governance.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "a0d0dca8b07c9b951c5d238a84dd6a7765a0ca7159def03b7dc5cee0a2f21b67"
+ },
+ "sap_object_store": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/Object_Store_on_SAP_BTP.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "d573848bbd7cd5982731ef58177f7d3acf66cafde57fc837fd7f53392769a4f0"
+ },
+ "sap_on_premise": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/On-Premise.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "3bed820b658ac3d29460d0a6c1865595505dc8ccd0f46b180383bca83ddb1635"
+ },
+ "sap_private_link": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Private_Link_service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "44121dfc682e6d3bf560abae03ad6fdcbdd7e83c4ab6d90ab972a18862eee160"
+ },
+ "sap_transport": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Cloud_Transport_Management.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "3bc82f2622045379928d322c59a498f66dc324158aa6a380bd2d297d4fa89779"
+ },
+ "sap_work_zone": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Build_Work_Zone_-_Standard_Edition.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "ebca43ca4f3bf2c3501e30f2c16b01d572a4a60bf1bb3799ea87220f45cb2681"
+ },
+ "sap_xsuaa": {
+  "source": "https://raw.githubusercontent.com/jgraph/drawio/dev/src/main/webapp/img/lib/sap/SAP_Authorization_and_Trust_Management_service.svg",
+  "license": "Apache-2.0 (jgraph/drawio); vendor artwork per vendor terms",
+  "sha256": "e543cea83d34d5c4c5de383bc50b8ece346d3b9f5beb8151310727fe44f6a3bb"
+ },
+ "secret_manager": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (secret_manager.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "194b0f81870b265064680007e472d011797d01fbdede0bb4ade28e025a22e7b6"
+ },
+ "security_command_center": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (security_command_center.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "5df295072647afcd5fea514553c4ffd7283996ffa3466a802c7ed6075484786c"
+ },
+ "spanner": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (cloud_spanner.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "b8031cbe251d22e7a96258b71bb1505afe5e98f5714b9ea222efcf90c31b7b0a"
+ },
+ "supabase": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/supabase.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086"
+ },
+ "terraform": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/terraform.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "894a34063749ee52f945fd24ec5983b79e0da9cafa16d99e2f0b6506a8908ae5"
+ },
+ "traefik": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/traefikproxy.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "f9b29330aad2d5c10117d519d5c9d81e8ac17790e2e36c5922c3e947c3784200"
+ },
+ "user": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "092b645509e80b455a86860e36bf5e90d7c2767a25cf70387afe09e17e187dcc"
+ },
+ "vault": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/vault.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "e4770b50923b671a0fb36287c3816bca4f7def0308e9de13f50f8aa9c9d84235"
+ },
+ "vercel": {
+  "source": "https://cdn.jsdelivr.net/npm/simple-icons@15/icons/vercel.svg",
+  "license": "CC0-1.0 (Simple Icons); trademark of its owner",
+  "sha256": "075b9d221ef5a7ea63d85f140bd2d63007f31d3ed8ceec011abc3ffd529827e3"
+ },
+ "vertex_ai": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (vertexai.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "d6a643fad5de9e513bba05af22b685572e5e06b92c3e5495b7ecf56666ff79c0"
+ },
+ "vpc": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (virtual_private_cloud.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "68ea0f50027d41b4a2733b3cbd7d1ecb825f0fbe230f64ff31bc9c97e22a79b4"
+ },
+ "vpc_connector": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (virtual_private_cloud.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "68ea0f50027d41b4a2733b3cbd7d1ecb825f0fbe230f64ff31bc9c97e22a79b4"
+ },
+ "web_app": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "876cd7cf8f8603c1dc0bbbe4bd77f1fd89e507793815b4616e86818570b46803"
+ },
+ "worker": {
+  "source": "drawman",
+  "license": "same license as this project",
+  "sha256": "90670a02ebdbb39a617d8f254b7c64a99697f93a332181e7e90332502f6b8e92"
+ },
+ "workflows": {
+  "source": "https://cloud.google.com/static/icons/files/google-cloud-icons.zip (workflows.svg)",
+  "license": "Google Cloud icons, see https://cloud.google.com/icons",
+  "sha256": "8ec518111280257e81947f01461b90279a88c1676eeb3f78f8c00c81a8dc607c"
+ }
+}

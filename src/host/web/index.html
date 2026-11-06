@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drawman · draw.io on steroids</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='2' width='20' height='20' rx='4' fill='%23f08705'/%3E%3Crect x='5' y='5' width='6' height='5' rx='1' fill='white'/%3E%3Crect x='13' y='14' width='6' height='5' rx='1' fill='white'/%3E%3Cpath d='M8 10v4h8' stroke='white' stroke-width='1.6' fill='none'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" class="logo" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="#f08705"/><rect x="5" y="5" width="6" height="5" rx="1" fill="#fff"/><rect x="13" y="14" width="6" height="5" rx="1" fill="#fff"/><path d="M8 10v4h8" stroke="#fff" stroke-width="1.6" fill="none"/></svg>
+        <div>
+          <div class="name">Drawman</div>
+          <div class="tag">draw.io on steroids · MCP Apps</div>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="model"><span>Model</span><select id="model"></select></label>
+        <button id="new" class="ghost">New chat</button>
+      </div>
+    </header>
+
+    <main id="thread">
+      <section id="hero" class="hero">
+        <h1>Describe an architecture.<br /><span>Watch it draw itself.</span></h1>
+        <p>The model designs it, a deterministic layout engine places every component and routes every interface,
+          and an MCP App renders the draw.io diagram live, right here in the conversation.</p>
+        <div class="ideas">
+          <button data-prompt="Generate a sample GCP architecture for a customer-facing web application with a global load balancer, Cloud Armor, Cloud Run, Cloud SQL, Memorystore, Pub/Sub, BigQuery analytics and full observability.">
+            <b>Sample GCP web platform</b><span>LB, Cloud Armor, Cloud Run, Cloud SQL, Pub/Sub, BigQuery</span></button>
+          <button data-prompt="Design an event-driven document ingestion pipeline on GCP: documents land in Cloud Storage, Eventarc triggers processing with Document AI and Vertex AI, results go to BigQuery and Firestore, Looker dashboards for analysts, plus security and monitoring.">
+            <b>Event-driven pipeline</b><span>Eventarc, Document AI, Vertex AI, BigQuery</span></button>
+          <button data-prompt="Design a hybrid landscape: a CAP application on SAP BTP Cloud Foundry with XSUAA and HANA Cloud, reaching an on-premises S/4HANA through destination, connectivity and Cloud Connector, plus an Azure Function that consumes its events through Event Mesh and stores results in Cosmos DB.">
+            <b>Hybrid SAP BTP + Azure</b><span>CAP, XSUAA, Cloud Connector, S/4HANA, Functions</span></button>
+          <button data-prompt="Design a secure internal GenAI RAG assistant on GKE behind IAP, using Vertex AI embeddings, AlloyDB with pgvector, an LLM gateway for chat models, Confluence as an external knowledge source, CMEK with KMS, and Private Service Connect. Built by GitHub Actions, images through JFrog Artifactory into Artifact Registry.">
+            <b>Internal RAG assistant</b><span>GKE, IAP, AlloyDB, KMS, PSC, JFrog</span></button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="composer">
+      <form id="form">
+        <textarea id="input" rows="1" placeholder="e.g. generate me a sample GCP architecture diagram for a data platform…" autofocus></textarea>
+        <button id="send" type="submit" title="Send">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5L4 12z" fill="currentColor"/></svg>
+        </button>
+      </form>
+      <div class="hint">Enter to send · Shift+Enter for a new line · diagrams are draw.io files you can download or open in diagrams.net</div>
+    </footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

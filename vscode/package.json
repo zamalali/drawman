@@ -1,0 +1,117 @@
+{
+  "name": "drawman",
+  "displayName": "Drawman: draw.io on steroids",
+  "description": "Ask Copilot for an architecture, flowchart, sequence, state, class or ER diagram and watch it build itself live in chat as an editable draw.io diagram.",
+  "version": "0.2.0",
+  "publisher": "drawman",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zamalali/drawman.git"
+  },
+  "homepage": "https://github.com/zamalali/drawman#readme",
+  "bugs": {
+    "url": "https://github.com/zamalali/drawman/issues"
+  },
+  "private": true,
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Visualization"
+  ],
+  "keywords": [
+    "mcp",
+    "mcp apps",
+    "drawio",
+    "architecture",
+    "diagram",
+    "copilot"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "drawman",
+        "label": "Drawman"
+      }
+    ],
+    "commands": [
+      {
+        "command": "drawman.drawWorkspace",
+        "title": "Draw the architecture of this workspace",
+        "category": "Drawman"
+      },
+      {
+        "command": "drawman.design",
+        "title": "Design an architecture…",
+        "category": "Drawman"
+      },
+      {
+        "command": "drawman.setApiKey",
+        "title": "Set LLM API key (optional)",
+        "category": "Drawman"
+      },
+      {
+        "command": "drawman.clearApiKey",
+        "title": "Clear LLM API key",
+        "category": "Drawman"
+      }
+    ],
+    "configuration": {
+      "title": "Drawman",
+      "properties": {
+        "drawman.llm.baseUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional OpenAI-compatible endpoint for repository analysis (e.g. `https://api.openai.com/v1`, a LiteLLM gateway). Leave empty to use Copilot's own model through MCP sampling. User setting only: a workspace cannot redirect your stored key.",
+          "scope": "application"
+        },
+        "drawman.llm.model": {
+          "type": "string",
+          "default": "gpt-4.1",
+          "description": "Model name at that endpoint.",
+          "scope": "application"
+        },
+        "drawman.llm.keyHeader": {
+          "type": "string",
+          "default": "Authorization",
+          "markdownDescription": "Header carrying the key. `Authorization` sends `Bearer <key>`; gateways may use e.g. `x-api-key`.",
+          "scope": "application"
+        },
+        "drawman.githubHost": {
+          "type": "string",
+          "default": "github.com",
+          "description": "Host used for owner/repo shorthands (e.g. a GitHub Enterprise Server).",
+          "scope": "machine"
+        },
+        "drawman.profile": {
+          "type": "string",
+          "default": "",
+          "description": "Path to an organisation profile JSON (conventions, vocabulary hints, internal endpoints)."
+        },
+        "drawman.outputDir": {
+          "type": "string",
+          "default": "diagrams",
+          "description": "Workspace folder for saved .drawio files."
+        },
+        "drawman.allowRemoteClone": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow analyze_repository to clone remote repositories (otherwise only workspace folders)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "node -e \"for (const f of ['LICENSE','NOTICE']) require('fs').copyFileSync('../'+f, f)\" && npx --yes @vscode/vsce@3 package --no-dependencies --allow-missing-repository --out ../dist/drawman.vsix"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.101.0"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Order Platform - GCP Architecture",
+  "subtitle": "acme-prod · europe-west3",
+  "nodes": [
+    { "id": "users", "kind": "user", "title": "Customers", "detail": "web and mobile" },
+    { "id": "repo", "kind": "github_repo", "title": "GitHub repository", "detail": "order-platform" },
+    { "id": "ci", "kind": "github_actions", "title": "GitHub Actions", "detail": "release workflow" },
+    { "id": "build", "kind": "docker_build", "title": "Docker build", "detail": "distroless image" },
+    { "id": "jfrog", "kind": "jfrog_artifactory", "title": "JFrog Artifactory", "detail": "release images" },
+    { "id": "gar", "kind": "artifact_registry", "title": "Artifact Registry", "detail": "runtime images" },
+    { "id": "lb", "kind": "load_balancer", "title": "Global load balancer", "detail": "HTTPS, managed certs" },
+    { "id": "armor", "kind": "cloud_armor", "title": "Cloud Armor", "detail": "WAF policy" },
+    { "id": "api", "kind": "cloud_run", "title": "Order API", "detail": "Cloud Run, min 2" },
+    { "id": "db", "kind": "cloud_sql", "title": "Orders DB", "detail": "PostgreSQL HA" },
+    { "id": "events", "kind": "pubsub", "title": "Order events", "detail": "Pub/Sub topic" },
+    { "id": "bq", "kind": "bigquery", "title": "Analytics", "detail": "BigQuery dataset" },
+    { "id": "secrets", "kind": "secret_manager", "title": "Secret Manager", "detail": "DB credentials" },
+    { "id": "logs", "kind": "cloud_logging", "title": "Cloud Logging", "detail": "request logs" }
+  ],
+  "interfaces": [
+    { "from": "repo", "to": "ci", "label": "push", "protocol": "git", "description": "Commits trigger the release workflow." },
+    { "from": "ci", "to": "build", "label": "build", "protocol": "docker", "description": "The workflow builds the image." },
+    { "from": "build", "to": "jfrog", "label": "push", "protocol": "HTTPS", "description": "Images are pushed to Artifactory first." },
+    { "from": "jfrog", "to": "gar", "label": "mirror", "protocol": "HTTPS", "description": "Released images are mirrored to Artifact Registry." },
+    { "from": "gar", "to": "api", "label": "deploy", "protocol": "OCI", "description": "Cloud Run pulls the revision image." },
+    { "from": "users", "to": "lb", "label": "orders", "protocol": "HTTPS", "description": "Customers place orders." },
+    { "from": "armor", "to": "lb", "label": "WAF", "protocol": "policy", "description": "Cloud Armor filters ingress traffic." },
+    { "from": "lb", "to": "api", "label": "route", "protocol": "HTTPS", "description": "Serverless NEG routes to the API." },
+    { "from": "api", "to": "db", "label": "SQL", "protocol": "PostgreSQL", "description": "Orders are persisted transactionally." },
+    { "from": "api", "to": "events", "label": "publish", "protocol": "gRPC", "description": "Order events are published." },
+    { "from": "events", "to": "bq", "label": "subscribe", "protocol": "Pub/Sub", "description": "A BigQuery subscription streams events into analytics." },
+    { "from": "api", "to": "secrets", "label": "read", "protocol": "gRPC", "description": "Database credentials are read at start-up." },
+    { "from": "api", "to": "logs", "label": "logs", "protocol": "gRPC", "description": "Structured request logs." }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "title": "Customer Refund Request Flow",
+  "direction": "TB",
+  "nodes": [
+    { "id": "received", "type": "start", "title": "Request received" },
+    { "id": "check_date", "type": "process", "title": "Check purchase date" },
+    { "id": "within_30", "type": "decision", "title": "Within 30 days?" },
+    { "id": "inspect", "type": "process", "title": "Inspect the item" },
+    { "id": "damaged", "type": "decision", "title": "Damaged?" },
+    { "id": "refund_card", "type": "process", "title": "Refund to card" },
+    { "id": "store_credit", "type": "process", "title": "Issue store credit" },
+    { "id": "reject", "type": "process", "title": "Reject request" },
+    { "id": "notify", "type": "process", "title": "Notify customer" },
+    { "id": "closed", "type": "end", "title": "Request closed" }
+  ],
+  "connections": [
+    { "from": "received", "to": "check_date" },
+    { "from": "check_date", "to": "within_30" },
+    { "from": "within_30", "to": "inspect", "label": "Yes" },
+    { "from": "within_30", "to": "reject", "label": "No" },
+    { "from": "inspect", "to": "damaged" },
+    { "from": "damaged", "to": "refund_card", "label": "No" },
+    { "from": "damaged", "to": "store_credit", "label": "Yes" },
+    { "from": "refund_card", "to": "notify" },
+    { "from": "store_credit", "to": "notify" },
+    { "from": "reject", "to": "notify" },
+    { "from": "notify", "to": "closed" }
+  ]
+}

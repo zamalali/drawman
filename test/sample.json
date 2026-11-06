@@ -1,0 +1,33 @@
+{
+  "title": "Golden layout sample", "subtitle": "acme-prod · europe-west3",
+  "nodes": [
+    {"id": "repo", "kind": "github_repo", "title": "GitHub repository", "detail": "summary-api"},
+    {"id": "actions", "kind": "github_actions", "title": "GitHub Actions", "detail": "release workflow"},
+    {"id": "docker", "kind": "docker_build", "title": "Docker build", "detail": "python:3.11-slim"},
+    {"id": "jfrog", "kind": "jfrog_artifactory", "title": "JFrog Artifactory", "detail": "image mirror"},
+    {"id": "gar", "kind": "artifact_registry", "title": "Artifact Registry", "detail": "team-docker"},
+    {"id": "run", "kind": "cloud_run", "title": "Cloud Run service", "detail": "summary-api"},
+    {"id": "wif", "kind": "workload_identity", "title": "Workload Identity", "detail": "GitHub OIDC"},
+    {"id": "sa", "kind": "iam", "title": "Runtime SA", "detail": "least privilege"},
+    {"id": "logs", "kind": "cloud_logging", "title": "Cloud Logging", "detail": "request logs"},
+    {"id": "gcs", "kind": "cloud_storage", "title": "Style guides", "detail": "gs://style-guides"},
+    {"id": "llm", "kind": "llm_gateway", "title": "LLM gateway", "detail": "chat models"},
+    {"id": "vpc", "kind": "vpc_connector", "title": "VPC connector", "detail": "all-traffic egress"},
+    {"id": "portal", "kind": "downstream_system", "title": "Portal backend", "detail": "calls /condense"},
+    {"id": "user", "kind": "user", "title": "Analyst", "detail": "via portal UI"}
+  ],
+  "interfaces": [
+    {"from": "repo", "to": "actions", "label": "push", "protocol": "git"},
+    {"from": "actions", "to": "docker", "label": "build", "protocol": "docker"},
+    {"from": "docker", "to": "jfrog", "label": "push", "protocol": "HTTPS"},
+    {"from": "jfrog", "to": "gar", "label": "mirror", "protocol": "HTTPS"},
+    {"from": "gar", "to": "run", "label": "deploy", "protocol": "gcloud"},
+    {"from": "actions", "to": "wif", "label": "OIDC", "protocol": "OIDC"},
+    {"from": "run", "to": "gcs", "label": "read PDFs", "protocol": "HTTPS"},
+    {"from": "run", "to": "llm", "label": "LLM", "protocol": "HTTPS"},
+    {"from": "run", "to": "logs", "label": "logs", "protocol": "gRPC"},
+    {"from": "run", "to": "vpc", "label": "egress", "protocol": "TCP"},
+    {"from": "portal", "to": "run", "label": "condense", "protocol": "HTTPS"},
+    {"from": "user", "to": "portal", "label": "uses", "protocol": "HTTPS"}
+  ]
+}

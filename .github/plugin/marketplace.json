@@ -1,0 +1,15 @@
+{
+  "name": "drawman",
+  "owner": { "name": "Drawman contributors" },
+  "metadata": { "description": "draw.io on steroids. Much cheaper, extremely fast, high-quality draw.io diagrams for coding agents.", "version": "0.2.0" },
+  "plugins": [
+    {
+      "name": "drawman",
+      "description": "draw.io on steroids. Turn any codebase or description into editable draw.io diagrams: architecture, flowcharts, sequence, state, class and ER.",
+      "version": "0.2.0",
+      "license": "Apache-2.0",
+      "keywords": ["draw.io", "architecture", "diagram", "mcp"],
+      "source": "./plugins/drawman"
+    }
+  ]
+}

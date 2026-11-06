@@ -1,0 +1,17 @@
+{
+  "name": "Example Corp",
+  "conventions": [
+    "Container images are built by GitHub Actions, pushed to JFrog Artifactory first and then to Artifact Registry.",
+    "Use workload_identity for keyless GitHub -> Google Cloud deployments and iam for runtime service accounts.",
+    "Every LLM call goes through the internal gateway \"Brain\" (kind llm_gateway)."
+  ],
+  "defaults": "When unspecified: Google Cloud in europe-west3, JFrog -> Artifact Registry, Workload Identity Federation, Secret Manager, Cloud Logging, the Brain gateway for LLMs.",
+  "hints": [
+    [["brain gateway", "brain-api"], "llm_gateway"],
+    [["order hub"], "downstream_system"]
+  ],
+  "endpoints": [
+    ["brain-api\\.example\\.com", "llm_gateway"]
+  ],
+  "githubHost": "github.example.com"
+}
