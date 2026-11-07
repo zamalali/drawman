@@ -1,5 +1,5 @@
 // Turns streamed tool input into a progressively built scene and finishes it when the result arrives.
-import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, type Card, type Edge, type Pt, type Scene, type SerialLayout } from "../engine/index.js"
+import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, type Card, type Edge, type Positions, type Pt, type Scene, type SerialLayout } from "../engine/index.js"
 import { escHtml, layers, setStatus, tick, ui, world } from "./dom.js"
 import { fitTo } from "./camera.js"
 import { app } from "./host.js"
@@ -17,6 +17,8 @@ let resultReady = false
 let shownNodes = 0
 let shownEdges = 0
 let beat = 0
+// Connection routes the server kept from the previous version of this diagram (edits), drawn exactly as in the file.
+let kept: Map<string, Pt[]> | null = null
 
 function available(args: Record<string, unknown>) {
   const f = normaliseFacts(args, !inputFinal)
@@ -76,7 +78,8 @@ export function draw(moved?: Set<string>) {
   const slice = { ...latest, [nodeKey]: rawNodes.slice(0, shownNodes), [edgeKey]: rawIfs.slice(0, shownEdges) }
   let scene: Scene
   try {
-    const reroute = moved && state.current ? { moved, previous: new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) } : undefined
+    const reroute = moved && state.current ? { moved, previous: new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) }
+      : kept ? { moved: new Set<string>(), previous: kept } : undefined
     scene = buildScene(normaliseFacts(slice, false), state.positions, reroute, state.layout ?? undefined)
     checkLayout(scene)
   } catch (error) {
@@ -140,13 +143,14 @@ app.ontoolresult = (result) => {
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
     return
   }
-  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout } | undefined
+  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]> } | undefined
   state.xml = state.serverXml = sc?.xml ?? ""
   resultStats = sc?.stats
-  if (sc?.layout) {
-    state.layout = sc.layout
-    draw()
-  }
+  // Edits: existing nodes keep their places (the server pinned them), so the view uses the same positions.
+  if (sc?.positions) state.positions = { ...sc.positions, ...state.positions }
+  if (sc?.routes) kept = new Map(Object.entries(sc.routes))
+  if (sc?.layout) state.layout = sc.layout
+  if (sc?.layout || sc?.positions) draw()
   if (sc?.analysis) showAnalysis(sc.analysis)
   if (sc?.handoff) {
     setStatus("done", "Evidence collected · the agent is drawing the diagram")

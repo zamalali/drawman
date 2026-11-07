@@ -12,8 +12,8 @@ tokens tiny, diagrams appear in seconds, and every result is clean and fully edi
 
 Architecture (cloud, on-premises, SAP, AI systems with official icons), flowcharts with swimlanes, sequence diagrams,
 state machines, UML class diagrams, ER diagrams and repository analysis, in any direction (top-down, left-to-right,
-right-to-left, bottom-up). Watch it build inside the chat, drag shapes and the lines re-route live, then export a
-native `.drawio` file.
+right-to-left, bottom-up). Watch it build inside the chat, drag shapes and the lines re-route live, ask for changes
+and everything already drawn stays exactly where it was, then export a native `.drawio` file.
 
 It ships as an [MCP](https://modelcontextprotocol.io) server with an [MCP App](https://github.com/modelcontextprotocol/ext-apps)
 view, so it runs in VS Code (GitHub Copilot), Claude, Copilot CLI, Cursor, or any MCP host. There is also a VS Code

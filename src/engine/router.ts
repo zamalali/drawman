@@ -130,7 +130,7 @@ class Heap {
 
 export function routeEdges(
   edges: Interface[], cards: Map<string, Box>, zones: Map<string, { key: ZoneKey; box: Box; title?: string; parent?: string }>, bounds: Box,
-  opts: { exact?: Set<string>; straightFirst?: boolean; crossCost?: number; refine?: number; centrePull?: number; sides?: Map<string, [Dir[], Dir[]]> } = {},
+  opts: { exact?: Set<string>; straightFirst?: boolean; crossCost?: number; refine?: number; centrePull?: number; sides?: Map<string, [Dir[], Dir[]]>; fixed?: Pt[][] } = {},
 ) {
   const exact = opts.exact
   const CROSSING = opts.crossCost ?? CROSS
@@ -175,6 +175,23 @@ export function routeEdges(
     return out
   }
   const usedH = new DenseCount(area), usedV = new DenseCount(area), portUse = new Map<number, number>()
+  const add = (m: DenseCount | Map<number, number>, key: number) => m.set(key, (m.get(key) ?? 0) + 1)
+  // Lines that stay as they are (kept from before an edit) occupy their tracks and ports, so new lines avoid riding on them.
+  for (const pts of opts.fixed ?? []) {
+    const snap = (v: number) => Math.round(v / GRID) * GRID
+    for (let i = 1; i < pts.length; i++) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i]
+      const flat = Math.abs(ay - by) <= Math.abs(ax - bx)
+      const end = i === 1 || i === pts.length - 1
+      const [from, to, at] = flat ? [snap(ax), snap(bx), snap(ay)] : [snap(ay), snap(by), snap(ax)]
+      const step = from <= to ? GRID : -GRID
+      for (let v = from; step > 0 ? v <= to : v >= to; v += step) {
+        const key = flat ? k(v, at) : k(at, v)
+        add(flat ? usedH : usedV, key)
+        if (end) add(portUse, key)
+      }
+    }
+  }
   const best = new DenseCount(area, Infinity, 4)
   const routes = new Map<string, Pt[]>()
   const failed: string[] = []

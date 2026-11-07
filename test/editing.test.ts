@@ -71,8 +71,16 @@ test("dragging re-routes only the moved card's interfaces and keeps every other 
   const t0 = performance.now()
   const moved = buildScene(facts, { [card.node.id]: [card.box[0], card.box[1] + 30] }, { moved: new Set([card.node.id]), previous })
   const ms = performance.now() - t0
+  const through = (pts: [number, number][], ends: string[]) => moved.cards.some((c) => !ends.includes(c.node.id) && pts.slice(1).some((b, i) => {
+    const a = pts[i], [x, y, w, h] = c.box
+    return Math.max(a[0], b[0]) > x + 1 && Math.min(a[0], b[0]) < x + w - 1 && Math.max(a[1], b[1]) > y + 1 && Math.min(a[1], b[1]) < y + h - 1
+  }))
   for (const e of moved.edges) {
-    if (e.from !== card.node.id && e.to !== card.node.id) assert.deepEqual(e.points, previous.get(e.id), `${e.id} was re-routed`)
+    if (e.from === card.node.id || e.to === card.node.id) continue
+    const before = previous.get(e.id)!
+    // A kept line is only redrawn when the dragged card now sits on top of it.
+    if (through(before, [e.from, e.to])) assert.ok(!through(e.points, [e.from, e.to]), `${e.id} still runs through a card`)
+    else assert.deepEqual(e.points, before, `${e.id} was re-routed`)
   }
   assert.equal(moved.edges.length, base.edges.length)
   assert.ok(ms < 60, `incremental drag frame took ${ms.toFixed(0)}ms`)
