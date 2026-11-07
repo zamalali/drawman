@@ -63,7 +63,14 @@ export function startZoneDrag(e: PointerEvent, zoneId: string) {
   const zone = state.current.zones.find((z) => z.id === zoneId)
   if (!zone || toWorld(e.clientX, e.clientY).y > zone.box[1] + 36) return
   const origin: Positions = { [`zone:${zoneId}`]: [zone.box[0], zone.box[1]] }
-  for (const c of state.current.cards) if (c.zoneId === zoneId) origin[c.node.id] = [c.box[0], c.box[1]]
+  // Nested groups move with their parent, together with their cards.
+  const inside = new Set([zoneId])
+  for (let grew = true; grew;) {
+    grew = false
+    for (const z of state.current.zones) if (z.parent && inside.has(z.parent) && !inside.has(z.id)) { inside.add(z.id); grew = true }
+  }
+  for (const z of state.current.zones) if (z.id !== zoneId && inside.has(z.id)) origin[`zone:${z.id}`] = [z.box[0], z.box[1]]
+  for (const c of state.current.cards) if (inside.has(c.zoneId)) origin[c.node.id] = [c.box[0], c.box[1]]
   beginDrag(e, zone.title, null, origin)
 }
 function moveCard(e: PointerEvent) {

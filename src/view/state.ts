@@ -1,4 +1,4 @@
-import type { Positions, Scene } from "../engine/index.js"
+import type { Positions, Scene, SerialLayout } from "../engine/index.js"
 
 export type Cam = { x: number; y: number; w: number; h: number }
 
@@ -13,6 +13,8 @@ export const state = {
   xml: "",
   done: false,
   flowOn: true,
+  // Final layout computed by the server (grouped diagrams); used once the tool result has arrived.
+  layout: null as SerialLayout | null,
 }
 
 // Items already shown once, so they only play their entrance animation the first time.

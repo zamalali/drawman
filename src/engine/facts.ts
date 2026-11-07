@@ -21,7 +21,7 @@ export interface Interface {
   id: string; from: string; to: string; label: string; protocol: string; description: string; index: number
   rel?: string
 }
-export interface Group { id: string; title: string }
+export interface Group { id: string; title: string; parent?: string }
 export interface Facts {
   title: string; subtitle: string; nodes: Node[]; interfaces: Interface[]; dropped: string[]; groups?: Group[]; flow?: FlowSpec
   sequence?: SequenceSpec
@@ -57,8 +57,13 @@ export const INPUT_KEYS: Record<DiagramKind, [nodes: string, edges: string]> = {
   state: ["states", "transitions"], class: ["classes", "relationships"], er: ["entities", "relationships"],
   sequence: ["participants", "messages"],
 }
+// The architecture tool calls user-named groups "containers"; with any, it is drawn as a grouped diagram.
+const withContainers = (input: DiagramInput): DiagramInput =>
+  Array.isArray(input.containers) && input.containers.length && !Array.isArray(input.groups) ? { ...input, groups: input.containers } : input
+
 export function diagramKind(input: DiagramInput | undefined): DiagramKind {
   if (!input || typeof input !== "object") return "architecture"
+  input = withContainers(input)
   const has = (k: string) => Array.isArray((input as Record<string, unknown>)[k])
   if (has("participants") || has("messages")) return "sequence"
   if (has("states") || has("transitions")) return "state"
@@ -90,6 +95,7 @@ function rows(v: unknown, er: boolean): string[] {
 }
 
 export function normaliseFacts(input: DiagramInput, streaming = false): Facts {
+  if (input && typeof input === "object") input = withContainers(input)
   const kind = diagramKind(input)
   const layered = kind === "flowchart" || kind === "state" || kind === "class" || kind === "er"
   const raw = (input ?? {}) as Record<string, unknown>
@@ -133,9 +139,10 @@ export function normaliseFacts(input: DiagramInput, streaming = false): Facts {
     if (general) {
       const icon = text(n.icon) || rawKind
       const key = icon.toLowerCase().replace(/[\s-]+/g, "_")
+      // A node without a group stays outside every container, as requested.
       nodes.push({
         id, kind: key in KIND ? key : "general", title, detail: text(n.detail), status, index,
-        group: slug(n.group) || "other", icon: resolveIcon(icon, title, text(n.detail)),
+        ...(slug(n.group) ? { group: slug(n.group) } : {}), icon: resolveIcon(icon, title, text(n.detail)),
       })
       return
     }
@@ -154,8 +161,7 @@ export function normaliseFacts(input: DiagramInput, streaming = false): Facts {
     const o = i as Record<string, unknown>
     const from = slug(i.from)
     const to = slug(i.to)
-    const self = kind === "sequence" && from === to
-    if (!seen.has(from) || !seen.has(to) || (from === to && !self)) {
+    if (!seen.has(from) || !seen.has(to)) {
       if (!(streaming && index === rawIfs.length - 1)) dropped.push(`interface ${from || "?"} -> ${to || "?"}`)
       return
     }
@@ -177,10 +183,25 @@ export function normaliseFacts(input: DiagramInput, streaming = false): Facts {
     })
   })
   interfaces.forEach((itf, n) => { itf.id = `${kind === "architecture" ? "IF" : "F"}-${String(n + 1).padStart(2, "0")}` })
-  const groups = general
-    ? (input.groups as unknown[]).map((g) => (typeof g === "object" && g ? g as Record<string, unknown> : { id: g, title: g }))
-      .map((g) => ({ id: slug(g.id ?? g.title), title: text(g.title ?? g.id) })).filter((g) => g.id)
-    : undefined
+  let groups: Group[] | undefined
+  if (general) {
+    const raw = (Array.isArray(input.groups) ? input.groups as unknown[] : [])
+      .map((g) => (typeof g === "object" && g ? g as Record<string, unknown> : { id: g, title: g }))
+      .map((g) => ({ id: slug(g.id ?? g.title), title: text(g.title ?? g.id), parent: slug(g.parent ?? g.in ?? g.within) }))
+      .filter((g) => g.id)
+    const ids = new Set<string>()
+    groups = raw.filter((g) => !ids.has(g.id) && ids.add(g.id))
+    // Nesting must form a tree: unknown parents and cycles are dropped (the group then sits at the top level).
+    const parentOf = new Map(groups.map((g) => [g.id, g.parent]))
+    for (const g of groups) {
+      if (!g.parent || !ids.has(g.parent) || g.parent === g.id) { delete (g as Group).parent; continue }
+      const seen = new Set([g.id])
+      let p: string | undefined = g.parent
+      while (p && !seen.has(p)) { seen.add(p); p = parentOf.get(p) || undefined }
+      if (p) { delete (g as Group).parent; parentOf.set(g.id, "") }
+    }
+    for (const g of groups) if (!g.parent) delete (g as Group).parent
+  }
   const lanes = layered && Array.isArray(input.lanes)
     ? (input.lanes as unknown[]).map((g) => (typeof g === "object" && g ? g as Record<string, unknown> : { id: g, title: g }))
       .map((g) => ({ id: slug(g.id ?? g.title), title: text(g.title ?? g.id) })).filter((g) => g.id)

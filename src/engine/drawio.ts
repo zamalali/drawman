@@ -1,6 +1,6 @@
 import iconsJson from "./icons.json" with { type: "json" }
 import { ROW, flowColours, isCompartment, labelColour, nodeBox } from "./flow.js"
-import type { Scene } from "./scene.js"
+import { edgeText, type Scene } from "./scene.js"
 import { participantType } from "./sequence.js"
 import { textWidth } from "./text.js"
 
@@ -183,7 +183,7 @@ export function buildDrawio(scene: Scene, generator = "Drawman") {
       ? `fontSize=11;fontStyle=1;fontColor=${facts.flow.family === "flowchart" ? labelColour(e.label) : "#5f6368"};labelBackgroundColor=#ffffff;`
       : "fontSize=10;fontStyle=1;fontColor=#1a73e8;labelBackgroundColor=#ffffff;"
     cells.push(
-      `<mxCell id="${esc(e.id)}" value="${esc(facts.flow ? e.label : e.id)}" tooltip="${esc(e.description)}" ` +
+      `<mxCell id="${esc(e.id)}" value="${esc(edgeText(e, !!facts.flow))}" tooltip="${esc(e.description)}" ` +
         `style="edgeStyle=none;rounded=1;arcSize=10;html=1;strokeColor=#5f6368;jumpStyle=arc;jumpSize=8;` +
         `strokeWidth=1.5;${relationStyle(facts.flow?.family, e.rel)}${flowLabel}` +
         `exitX=${ex.toFixed(4)};exitY=${ey.toFixed(4)};exitDx=0;exitDy=0;exitPerimeter=0;` +

@@ -16,5 +16,10 @@ src/engine/icons.sources.json. Built packages (npm, .vsix) embed those icons.
 - docs/flex-left.svg and docs/flex-right.svg (README title): the flexed biceps emoji (U+1F4AA) from Noto Emoji,
   https://github.com/googlefonts/noto-emoji, Copyright Google Inc., Apache-2.0; the right one is mirrored.
 
+Third-party software
+--------------------
+- Eclipse Layout Kernel (elkjs), https://github.com/kieler/elkjs, Eclipse Public License 2.0: lays out grouped
+  diagrams. Used unmodified as an npm dependency.
+
 draw.io and diagrams.net are trademarks of JGraph Ltd. This project is not affiliated with or endorsed by JGraph,
 Google, Microsoft, SAP, GitHub, Docker or JFrog.

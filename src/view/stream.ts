@@ -1,5 +1,5 @@
 // Turns streamed tool input into a progressively built scene and finishes it when the result arrives.
-import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, type Card, type Edge, type Pt, type Scene } from "../engine/index.js"
+import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, type Card, type Edge, type Pt, type Scene, type SerialLayout } from "../engine/index.js"
 import { escHtml, layers, setStatus, tick, ui, world } from "./dom.js"
 import { fitTo } from "./camera.js"
 import { app } from "./host.js"
@@ -77,7 +77,7 @@ export function draw(moved?: Set<string>) {
   let scene: Scene
   try {
     const reroute = moved && state.current ? { moved, previous: new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) } : undefined
-    scene = buildScene(normaliseFacts(slice, false), state.positions, reroute)
+    scene = buildScene(normaliseFacts(slice, false), state.positions, reroute, state.layout ?? undefined)
     checkLayout(scene)
   } catch (error) {
     if (inputFinal) setStatus("error", (error as Error).message)
@@ -140,9 +140,13 @@ app.ontoolresult = (result) => {
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
     return
   }
-  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean } | undefined
+  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout } | undefined
   state.xml = state.serverXml = sc?.xml ?? ""
   resultStats = sc?.stats
+  if (sc?.layout) {
+    state.layout = sc.layout
+    draw()
+  }
   if (sc?.analysis) showAnalysis(sc.analysis)
   if (sc?.handoff) {
     setStatus("done", "Evidence collected · the agent is drawing the diagram")

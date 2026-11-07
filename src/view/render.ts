@@ -1,5 +1,5 @@
 // Draws a scene into the SVG layers, reusing nodes by key so updates animate instead of flashing.
-import { iconBox, labelColour, pointAt, type Card, type Edge, type Scene } from "../engine/index.js"
+import { edgeText, iconBox, labelColour, pointAt, type Card, type Edge, type Scene } from "../engine/index.js"
 import { dataUri, el, fit, keyed, layers, measure, sweep } from "./dom.js"
 import { markers, roundedPath } from "./geometry.js"
 import { bindCard, startZoneDrag } from "./interaction.js"
@@ -64,6 +64,16 @@ export function drawZones(scene: Scene) {
     }
   }
   sweep(layers.zones)
+  // Nested groups: a parent must sit underneath its children even when it appeared later (only reorder when needed,
+  // so entrance animations are not replayed).
+  const want = scene.zones.map((z) => z.id)
+  const have = (Array.from(layers.zones.children) as SVGElement[]).map((n) => n.dataset.key ?? "")
+  if (want.join("\n") !== have.join("\n")) {
+    for (const id of want) {
+      const node = layers.zones.querySelector(`[data-key="${CSS.escape(id)}"]`)
+      if (node) layers.zones.appendChild(node)
+    }
+  }
 }
 
 export function drawCards(scene: Scene, added: Card[]) {
@@ -149,15 +159,17 @@ export function drawEdges(scene: Scene, added: Edge[]) {
     lg.dataset.from = e.from
     lg.dataset.to = e.to
     lg.setAttribute("transform", `translate(${lx},${ly})`)
-    const label = scene.facts.flow ? e.label : e.id
+    const label = edgeText(e, !!scene.facts.flow)
     lg.style.display = label ? "" : "none"
     const lt = lg.querySelector("text")!
     lt.textContent = label
-    if (scene.facts.flow && label) {
-      measure.font = "bold 11px Segoe UI"
+    if (label) {
+      measure.font = scene.facts.flow ? "bold 11px Segoe UI" : "bold 10px Segoe UI"
       const lw = Math.ceil(measure.measureText(label).width) + 10
       const lr = lg.querySelector("rect")!
       lr.setAttribute("x", String(-lw / 2)); lr.setAttribute("width", String(lw))
+    }
+    if (scene.facts.flow && label) {
       lt.style.fill = scene.facts.flow.family === "flowchart" ? labelColour(label) : "#5f6368"
       lt.style.fontSize = "11px"
     }

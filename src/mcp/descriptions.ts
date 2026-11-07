@@ -9,17 +9,22 @@ export const TOOL_DESCRIPTION = () => `Draw a cloud architecture diagram (draw.i
 Works for Google Cloud, Microsoft Azure, SAP BTP, on-premises SAP (S/4HANA, ECC, BW, GRC) and hybrid landscapes:
 each component is drawn inside the frame of its platform, with official GCP, Azure and SAP BTP icons.
 You only describe WHAT exists and HOW it talks; frames, zones, icons, orthogonal edge routing and the interface
-legend are computed deterministically, so never think about positions or coordinates.
+legend are computed deterministically, so never think about positions or coordinates. Large landscapes are fine.
 
 Write the arguments in this order: title, subtitle, then ALL nodes, then ALL interfaces.
 Order nodes along the flow (users/sources first, then ingress, compute, data, consumers) so the diagram grows naturally.
 
 Rules:
-- 6-26 nodes, 5-26 interfaces. Group many similar externals into ONE node.
-- node.id: short_snake_case, unique. node.title: max 4 words. node.detail: max 7 words (concrete: name, tier, region).
+- Draw every component and connection the user names (up to 200 nodes); never merge or drop what they asked for.
+- node.id: short_snake_case, unique. node.title: the component's name in the user's own wording. node.detail: max 7
+  words (concrete: name, tier, region).
 - node.kind MUST be one of the vocabulary below; it decides the platform frame, the zone and the official icon.
+- containers: leave out unless the user explicitly names containers that hold components ("inside one VPC",
+  "subnets", "cluster with namespaces", "two regions"). Then list exactly those as {id, title, parent?} (parent nests one
+  inside another), set node.group, and leave components the user puts outside without a group. Never invent containers:
+  without them the platform frames and zones are drawn automatically.
 - status: "active" (default), "planned" or "bypassed" (drawn dashed), "external".
-- interface: from/to are node ids, label max 4 words, protocol (HTTPS, OData, RFC, gRPC, Pub/Sub, JDBC, OIDC...), description one sentence.
+- interface: from/to are node ids, label (shown on the edge, max 4 words: what flows, e.g. "orders", "SQL reads"), protocol (HTTPS, OData, RFC, gRPC, Pub/Sub, JDBC, OIDC...), description one sentence.
 - subtitle: e.g. "<gcp project> · <region>", "<BTP subaccount>" or the scenario.
 - Release path: source repo -> CI -> docker_build -> (jfrog_artifactory when used) -> registry -> runtime.
   SAP BTP apps reach on-premises via sap_destination -> sap_connectivity -> sap_cloud_connector.
@@ -49,7 +54,7 @@ Write the arguments in this order: title, subtitle, direction, lanes, then ALL n
   Loops back to an earlier step (retry, rework) are fine.
 - direction: "TB" top-down (default), "LR" left-to-right (short linear processes), "RL" right-to-left or "BT"
   bottom-to-top. lanes only when roles or departments matter.
-- 3-40 nodes. To change a flowchart, call the tool again with the COMPLETE updated nodes and connections.`
+- Up to 200 nodes. To change a flowchart, call the tool again with the COMPLETE updated nodes and connections.`
 
 const NOT_FOR = `These tools draw boxes and the lines between them. They cannot draw spatial or pixel-accurate pictures:
 floor plans, maps, seating plans, UI mockups / wireframes, charts or graphs of data, illustrations. For those, say so
@@ -77,7 +82,7 @@ orders, tickets, payments, documents, connections, workflows, protocol or UI sta
 Write title, direction, then ALL states, then ALL transitions.
 - states: {id, title, type?, detail?}. type is initial (the start dot, no title), final (end bullseye), state (default) or
   choice (a decision diamond). detail holds entry / do / exit activities, e.g. "entry / send email".
-- transitions: {from, to, event?, guard?, action?} drawn as "event [guard] / action". Self-transitions are not supported.
+- transitions: {from, to, event?, guard?, action?} drawn as "event [guard] / action". A state may transition to itself.
 - direction: "TB" (default), "LR", "RL" (right-to-left) or "BT" (bottom-to-top). 3-30 states. To change it, call again with the COMPLETE lists.`
 
 export const CLASS_DESCRIPTION = () => `Draw a UML class diagram as a live, editable draw.io diagram (native class boxes with attribute and
@@ -90,7 +95,7 @@ Write title, direction, then ALL classes, then ALL relationships.
 - relationships: {from, to, type, label?}: inherits (from = subclass, to = parent), implements (from = class, to =
   interface), composition / aggregation (from = the whole, to = the part), association (label = multiplicity such as
   "1..*"), dependency (from uses to). Parents are placed above their children automatically.
-- 2-24 classes. To change it, call again with the COMPLETE lists.`
+- Up to 80 classes. To change it, call again with the COMPLETE lists.`
 
 export const ER_DESCRIPTION = () => `Draw an entity relationship (ER) / database schema diagram as a live, editable draw.io diagram: tables
 with their columns, primary and foreign keys, and crow's-foot relationships. Use it for database designs, data models
@@ -100,24 +105,27 @@ Write title, direction, then ALL entities, then ALL relationships.
 - entities: {id, name, fields}. fields: {name, type, pk?, fk?} or strings like "PK id: uuid". Key columns first.
 - relationships: {from, to, cardinality, label?} with cardinality one-to-one, one-to-many (from = the "one" side, e.g.
   customers -> orders), many-to-one or many-to-many. The "one" side is placed above the "many" side.
-- 2-24 entities. To change it, call again with the COMPLETE lists.`
+- Up to 80 entities. To change it, call again with the COMPLETE lists.`
 
 export const GENERAL_DESCRIPTION = () => `Draw ANY other connected diagram as a live, editable draw.io diagram: ML / neural-network
 architectures (e.g. a Transformer), system context diagrams, data pipelines in the abstract, concept maps, org charts,
-layered models. The user watches it build itself. You only describe groups, nodes and connections; the layout (groups
-as columns ranked along the flow), icons and orthogonal edge routing are computed deterministically.
+layered models. The user watches it build itself. You only describe groups, nodes and connections; the layout (nested
+groups placed along the flow with few crossings), icons and orthogonal edge routing are computed deterministically.
 For cloud / software infrastructure with real services (AWS, GCP, Azure, SAP, Kubernetes) use create_architecture_diagram.
 For flowcharts, processes, workflows, decision trees and approval flows use create_flowchart. For API call flows use
 create_sequence_diagram, for lifecycles create_state_diagram, for object models create_class_diagram and for database
 schemas create_er_diagram. ${NOT_FOR}
 
 Write the arguments in this order: title, subtitle, groups, nodes, interfaces.
-- groups: the stages / containers / swimlanes, in flow order, e.g. [{id:"encoder", title:"Encoder (×N)"}, {id:"decoder", title:"Decoder (×N)"}].
-- nodes: {id, title (max 4 words), detail (max 8 words), group (a group id), icon?}. Order nodes inside a group along the flow.
+- groups (optional): only the stages / containers the user actually names, in flow order, e.g. [{id:"encoder", title:"Encoder (×N)"}].
+  Do not invent groups; without them, nodes are drawn free-standing.
+  Nest a group inside another with parent: {id:"ns_api", title:"Namespace api", parent:"cluster"}.
+- nodes: {id, title (the user's wording), detail (max 8 words), group?, icon?}. Omit group for nodes outside every
+  group. Order nodes inside a group along the flow.
   icon (optional) is one of ${GENERAL_ICONS.join(", ")} or any architecture kind (e.g. postgres, aws_lambda, kafka);
   when omitted it is chosen from the wording.
-- interfaces: {from, to, label (max 4 words), description (one sentence)}. Numbered F-01, F-02... in the legend.
-- 4-30 nodes, 2-12 groups. Keep loops and residual connections as interfaces; the router keeps them readable.`
+- interfaces: {from, to, label (shown on the edge, max 4 words), description (one sentence)}. Listed F-01, F-02... in the legend.
+- Up to 200 nodes; draw everything the user names. Keep loops and residual connections as interfaces; the router keeps them readable.`
 
 export const ANALYZE_DESCRIPTION = () => `Read a real codebase and draw its architecture as a live draw.io diagram.
 Use whenever the user names a repository, codebase, project folder or git link ("draw the architecture of this repo",

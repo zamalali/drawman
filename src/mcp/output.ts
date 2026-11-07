@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url"
 import { deflateRawSync } from "node:zlib"
 import { config } from "../config.js"
 import { renderDiagram, type DiagramInput } from "../engine/index.js"
+import "../engine/server-setup.js"
 
 export function diagramsNetLink(title: string, xml: string): string {
   const data = deflateRawSync(Buffer.from(encodeURIComponent(xml), "utf8")).toString("base64")
@@ -69,7 +70,7 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
           `${frames ? ` across ${frames}` : ""} [${zones}], ${stats.edges} routed interfaces [${ifs}]. ` +
           `draw.io file: ${(stats.bytes / 1024).toFixed(0)} KB. ${notes}`).trim(),
     }],
-    structuredContent: { title: facts.title, stats, ...(withXml || !file ? { xml } : {}), ...(file ? { file } : {}), ...(open ? { open } : {}) } as Record<string, unknown>,
+    structuredContent: { title: facts.title, stats, ...(withXml || !file ? { xml } : {}), ...(file ? { file } : {}), ...(open ? { open } : {}), ...(withXml && scene.placed ? { layout: scene.placed } : {}) } as Record<string, unknown>,
   }
 }
 

@@ -7,7 +7,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { RootsListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js"
 import { z } from "zod"
 import { config, isBroad } from "../config.js"
-import { FLOW_SHAPES, FLOW_TONES, GENERAL_ICONS, NODE_KINDS } from "../engine/index.js"
+import { FLOW_SHAPES, FLOW_TONES, GENERAL_ICONS } from "../engine/index.js"
 import { httpCompleter, samplingCompleter } from "../llm.js"
 import { analyzeRepository, applyRecentEvidence, type Analysis } from "../repo/analyze.js"
 import { VERSION } from "../version.js"
@@ -18,6 +18,14 @@ export * from "./descriptions.js"
 export { diagramsNetLink } from "./output.js"
 
 export const RESOURCE_URI = "ui://drawman/view.html"
+
+// Generous limits: the layout handles large diagrams, so the schema never forces the model to drop or merge parts.
+const MAX_NODES = 200, MAX_EDGES = 400, MAX_TABLES = 80
+const GROUPS_ARG = z.array(z.object({
+  id: z.string(),
+  title: z.string(),
+  parent: z.string().optional().describe("id of the enclosing group, for nested containers (subnet inside VPC, namespace inside cluster)"),
+})).max(80).optional().describe("ONLY containers the user's request explicitly names (e.g. 'inside the VPC', 'in the payments namespace'); never invent them")
 const VIEW_CANDIDATES = ["./view/view.html", "../../dist/view/view.html"].map((p) => fileURLToPath(new URL(p, import.meta.url)))
 const viewHtml = () => {
   const file = VIEW_CANDIDATES.find((f) => existsSync(f))
@@ -73,22 +81,24 @@ export function createServer(opts: ServerOptions = {}) {
       title: "Create architecture diagram",
       description: TOOL_DESCRIPTION(),
       inputSchema: {
-        title: z.string().max(80).describe("Diagram title, e.g. 'Order Platform - GCP Architecture'"),
+        title: z.string().max(120).describe("Diagram title, e.g. 'Order Platform - GCP Architecture'"),
         subtitle: z.string().max(120).optional().describe("Context line, e.g. 'my-project · europe-west3'"),
         nodes: z.array(z.object({
           id: z.string().describe("short_snake_case unique id"),
-          kind: z.enum(NODE_KINDS as [string, ...string[]]),
-          title: z.string().describe("max 4 words"),
+          kind: z.string().describe("a kind from the vocabulary in the tool description"),
+          title: z.string().describe("the component's name, in the user's own wording"),
           detail: z.string().optional().describe("max 7 words"),
           status: z.enum(["active", "planned", "bypassed", "external"]).optional(),
-        })).min(1).max(40),
+          group: z.string().optional().describe("only with containers: id of the container it sits in; omit when outside all of them"),
+        })).min(1).max(MAX_NODES),
+        containers: GROUPS_ARG,
         interfaces: z.array(z.object({
           from: z.string(),
           to: z.string(),
           label: z.string().optional(),
           protocol: z.string().optional(),
           description: z.string().optional(),
-        })).max(40),
+        })).max(MAX_EDGES),
         repository: z.string().optional().describe("Only after analyze_repository handed you its evidence: the repository name it reported"),
         save: z.boolean().optional().describe("Also write the .drawio file into the workspace (always done when the host has no live view)"),
         workspace: workspaceArg,
@@ -98,6 +108,8 @@ export function createServer(opts: ServerOptions = {}) {
     },
     async ({ repository, save, workspace, ...args }) => {
       await adoptWorkspace(workspace)
+      // Named containers switch to the grouped layout; without them the original platform frames and zones are used.
+      if (!args.containers?.length) { delete args.containers; for (const n of args.nodes) delete (n as { group?: string }).group }
       try {
         const evidence = repository && !opts.stateless ? applyRecentEvidence(repository, args) : null
         const base = summarise(evidence?.diagram ?? args, shouldSave(save), liveView())
@@ -118,18 +130,18 @@ export function createServer(opts: ServerOptions = {}) {
       inputSchema: {
         title: z.string().max(100),
         subtitle: z.string().max(140).optional(),
-        groups: z.array(z.object({ id: z.string(), title: z.string() })).max(16).describe("stages / containers in flow order"),
+        groups: GROUPS_ARG,
         nodes: z.array(z.object({
           id: z.string().describe("short_snake_case unique id"),
-          title: z.string().describe("max 4 words"),
+          title: z.string().describe("the name, in the user's own wording"),
           detail: z.string().optional().describe("max 8 words"),
-          group: z.string().describe("id of its group"),
+          group: z.string().optional().describe("id of its group; omit when it sits outside every group"),
           icon: z.string().optional().describe(`${GENERAL_ICONS.join(" | ")} | any architecture kind`),
           status: z.enum(["active", "planned", "bypassed", "external"]).optional(),
-        })).min(1).max(40),
+        })).min(1).max(MAX_NODES),
         interfaces: z.array(z.object({
           from: z.string(), to: z.string(), label: z.string().optional(), description: z.string().optional(),
-        })).max(50),
+        })).max(MAX_EDGES),
         save: z.boolean().optional().describe("Also write the .drawio file into the workspace (always done when the host has no live view)"),
         workspace: workspaceArg,
       },
@@ -139,7 +151,8 @@ export function createServer(opts: ServerOptions = {}) {
     async ({ save, workspace, ...args }) => {
       await adoptWorkspace(workspace)
       try {
-        return summarise(args, shouldSave(save), liveView())
+        // Always a grouped diagram, also when every node sits outside a group.
+        return summarise({ ...args, groups: args.groups ?? [] }, shouldSave(save), liveView())
       } catch (error) {
         return failure("Diagram failed", error)
       }
@@ -165,12 +178,12 @@ export function createServer(opts: ServerOptions = {}) {
           detail: z.string().optional().describe("optional extra explanation (shown on hover, not on the shape)"),
           lane: z.string().optional().describe("lane id, only when lanes are used"),
           tone: z.string().optional().describe(`optional colour override: ${FLOW_TONES.join(", ")}`),
-        })).min(2).max(50),
+        })).min(2).max(MAX_NODES),
         connections: z.array(z.object({
           from: z.string(),
           to: z.string(),
           label: z.string().optional().describe("branch label, max 3 words: Yes / No for decisions, otherwise usually empty"),
-        })).max(80),
+        })).max(MAX_EDGES),
         save: z.boolean().optional().describe("Also write the .drawio file into the workspace (always done when the host has no live view)"),
         workspace: workspaceArg,
       },
@@ -211,14 +224,14 @@ export function createServer(opts: ServerOptions = {}) {
         id: z.string().describe("short_snake_case unique id"),
         title: z.string().describe("max 4 words"),
         type: z.string().optional().describe("actor, service (default), database, queue, external, boundary, control, entity"),
-      })).min(2).max(12),
+      })).min(2).max(24),
       messages: z.array(z.object({
         from: z.string().optional(), to: z.string().optional(), label: z.string().optional(),
         type: z.enum(["sync", "async", "return", "create"]).optional(),
         fragment: z.enum(["alt", "opt", "loop", "par", "critical", "break"]).optional(),
         else: z.string().optional(), end: z.boolean().optional(),
         note: z.string().optional(), over: z.union([z.string(), z.array(z.string())]).optional(),
-      }).passthrough()).max(80).describe("messages and control items (fragment / else / end / note) in time order"),
+      }).passthrough()).max(MAX_EDGES).describe("messages and control items (fragment / else / end / note) in time order"),
       ...common,
     },
     annotations,
@@ -237,10 +250,10 @@ export function createServer(opts: ServerOptions = {}) {
         type: z.enum(["initial", "final", "state", "choice"]).optional(),
         detail: z.string().optional().describe("entry / do / exit activities"),
         tone: z.string().optional().describe(`optional colour: ${FLOW_TONES.join(", ")}`),
-      })).min(2).max(40),
+      })).min(2).max(MAX_NODES),
       transitions: z.array(z.object({
         from: z.string(), to: z.string(), event: z.string().optional(), guard: z.string().optional(), action: z.string().optional(),
-      })).max(80),
+      })).max(MAX_EDGES),
       ...common,
     },
     annotations,
@@ -259,12 +272,12 @@ export function createServer(opts: ServerOptions = {}) {
         type: z.enum(["class", "interface", "abstract", "enum"]).optional(),
         attributes: z.array(z.string()).max(16).optional(),
         methods: z.array(z.string()).max(16).optional(),
-      })).min(1).max(30),
+      })).min(1).max(MAX_TABLES),
       relationships: z.array(z.object({
         from: z.string(), to: z.string(),
         type: z.enum(["inherits", "implements", "composition", "aggregation", "association", "dependency"]),
         label: z.string().optional().describe("multiplicity or role, e.g. 1..*"),
-      })).max(60),
+      })).max(MAX_EDGES),
       ...common,
     },
     annotations,
@@ -283,12 +296,12 @@ export function createServer(opts: ServerOptions = {}) {
         fields: z.array(z.union([z.string(), z.object({
           name: z.string(), type: z.string().optional(), pk: z.boolean().optional(), fk: z.boolean().optional(),
         })])).max(24),
-      })).min(1).max(30),
+      })).min(1).max(MAX_TABLES),
       relationships: z.array(z.object({
         from: z.string(), to: z.string(),
         cardinality: z.enum(["one-to-one", "one-to-many", "many-to-one", "many-to-many"]),
         label: z.string().optional(),
-      })).max(60),
+      })).max(MAX_EDGES),
       ...common,
     },
     annotations,

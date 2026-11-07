@@ -62,6 +62,7 @@ if (values.help) {
   await startWeb(Number(values.port ?? process.env.PORT ?? 5179))
 } else if (command === "render") {
   if (!target) fail("render needs a JSON file")
+  await import("./engine/server-setup.js")
   const { renderDiagram } = await import("./engine/index.js")
   const input = JSON.parse(readFileSync(target, "utf8").replace(/^\uFEFF/, ""))
   const { xml, stats, facts } = renderDiagram(input)
@@ -73,6 +74,7 @@ if (values.help) {
   await import("./config.js")
   const { analyzeRepository } = await import("./repo/analyze.js")
   const { httpCompleter } = await import("./llm.js")
+  await import("./engine/server-setup.js")
   const { renderDiagram } = await import("./engine/index.js")
   const r = await analyzeRepository(target, { ref: values.ref, focus: values.focus, complete: httpCompleter() })
   if (r.mode === "handoff") {

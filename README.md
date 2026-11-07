@@ -1,6 +1,6 @@
 <h1 align="center"><img src="docs/flex-left.svg" alt="" width="44" height="44" align="top"> Drawman <img src="docs/flex-right.svg" alt="" width="44" height="44" align="top"></h1>
 
-<h3 align="center"><em>draw.io on steroids.</em></h3>
+<h3 align="center"><em>draw.io on steroids</em></h3>
 
 <p align="center">
   <img src="docs/demo.webp" alt="Four prompts, four live diagrams: a Google Cloud production platform, a hybrid SAP BTP + Azure + on-premises S/4HANA architecture, an e-commerce ER schema and a ride-hailing UML class model, each designed by the model and drawn live as an editable draw.io diagram" width="100%">
@@ -154,13 +154,13 @@ Because the hard part is not the model's job, mid-size models produce the same q
 
 | Tool | Purpose |
 | --- | --- |
-| `create_architecture_diagram` | title, subtitle, nodes `{id, kind, title, detail, status}`, interfaces `{from, to, label, protocol, description}` |
+| `create_architecture_diagram` | title, subtitle, nodes `{id, kind, title, detail, status, group?}`, interfaces `{from, to, label, protocol, description}`; optional `containers` `{id, title, parent?}` only when the request names them (VPC, subnets, clusters, namespaces), otherwise platform frames and zones are drawn automatically |
 | `create_flowchart` | flowcharts, processes, approval flows, decision trees: real flowchart shapes (start/end, process, decision, data, document, database, sub-process), Yes/No branches, optional swimlanes, top-down or left-right |
 | `create_sequence_diagram` | API / auth / payment call flows: native UML lifelines, activation bars, sync / async / return messages, `alt` `opt` `loop` `par` fragments, notes |
 | `create_state_diagram` | lifecycles and statuses: initial / final / choice pseudo-states, `event [guard] / action` transitions, entry / exit activities |
 | `create_class_diagram` | domain models and OO designs: class / interface / abstract / enum boxes with attributes and methods, inheritance, realisation, composition, aggregation, association, dependency |
 | `create_er_diagram` | database schemas: tables with typed columns, PK / FK, crow's-foot cardinalities |
-| `create_diagram` | any other connected diagram (ML models, concept maps, org charts): groups, nodes, interfaces |
+| `create_diagram` | any other connected diagram (ML models, concept maps, org charts): optional groups `{id, title, parent?}` that can nest, nodes (a node without a group stays outside every group), interfaces |
 | `analyze_repository` | `"."`, a workspace folder, `owner/repo` or an https git URL; optional `ref`, `focus` |
 
 All of them accept `workspace` (the absolute project path), which agents that start servers outside the project (Copilot
