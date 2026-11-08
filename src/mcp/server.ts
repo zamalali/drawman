@@ -11,8 +11,9 @@ import { FLOW_SHAPES, FLOW_TONES, GENERAL_ICONS } from "../engine/index.js"
 import { httpCompleter, samplingCompleter } from "../llm.js"
 import { analyzeRepository, applyRecentEvidence, type Analysis } from "../repo/analyze.js"
 import { VERSION } from "../version.js"
-import { ANALYZE_DESCRIPTION, CLASS_DESCRIPTION, ER_DESCRIPTION, FLOWCHART_DESCRIPTION, GENERAL_DESCRIPTION, SEQUENCE_DESCRIPTION, STATE_DESCRIPTION, TOOL_DESCRIPTION } from "./descriptions.js"
-import { failure, summarise } from "./output.js"
+import { ANALYZE_DESCRIPTION, CLASS_DESCRIPTION, ER_DESCRIPTION, FLOWCHART_DESCRIPTION, GENERAL_DESCRIPTION, SEQUENCE_DESCRIPTION, STATE_DESCRIPTION, TOOL_DESCRIPTION, EDIT_DESCRIPTION } from "./descriptions.js"
+import { adjustLayout, failure, layoutContext, summarise, type LayoutContext, type Memo } from "./output.js"
+import { applyChange, findSheet, keepSheet, type Change } from "./sheets.js"
 
 export * from "./descriptions.js"
 export { diagramsNetLink } from "./output.js"
@@ -74,8 +75,39 @@ export function createServer(opts: ServerOptions = {}) {
   const liveView = () => hasUi() && !terminal()
   const workspaceArg = z.string().optional().describe("Absolute path of the user's project (your current working directory). Coding agents should always pass it.")
 
-  registerAppTool(
-    server,
+  // Every drawing is remembered under an id, so follow-ups go through edit_diagram with only what changes.
+  type Drawn = { isError?: boolean; content: { type: "text"; text: string }[]; structuredContent?: Record<string, unknown> }
+  const drawers = new Map<string, { schema: z.ZodTypeAny; run: (args: never) => Promise<Drawn> }>()
+  // Recent layouts, so a plain redraw of the same diagram keeps its places too; only within this connection.
+  const recent: Memo[] | undefined = opts.stateless ? undefined : []
+  const drawing = async (run: () => Promise<Drawn>, base?: Memo) => {
+    const ctx: LayoutContext = { base, recent }
+    const result = await layoutContext.run(ctx, run)
+    return { result, memo: ctx.memo }
+  }
+  const remembered = (result: Drawn, tool: string, input: Record<string, unknown>, memo: Memo | undefined, id?: string): Drawn => {
+    const sc = result.structuredContent
+    if (result.isError || !sc?.stats) return result
+    const { save: _s, workspace: _w, repository: _r, ...args } = (sc.diagram ?? input) as Record<string, unknown>
+    const view = Object.fromEntries(["layout", "positions", "routes"].filter((k) => sc[k] !== undefined).map((k) => [k, sc[k]]))
+    const key = keepSheet(tool, args, id, view, memo)
+    const [first, ...rest] = result.content
+    return {
+      ...result,
+      content: [{ ...first, text: `${first.text} Diagram id: ${key}. For any follow-up change to it, call edit_diagram with this id and only what changes.` }, ...rest],
+      structuredContent: { ...sc, sheet: key },
+    }
+  }
+  const tool = <S extends z.ZodRawShape, A = z.infer<z.ZodObject<S>>>(name: string, cfg: { inputSchema: S } & Record<string, unknown>, run: (args: A) => Promise<Drawn>, as = name) => {
+    drawers.set(name, { schema: z.object(cfg.inputSchema), run: run as never })
+    registerAppTool(server, name, cfg as never, (async (args: A) => {
+      const input = structuredClone(args) as Record<string, unknown>
+      const { result, memo } = await drawing(() => run(args))
+      return remembered(result, as, input, memo)
+    }) as never)
+  }
+
+  tool(
     "create_architecture_diagram",
     {
       title: "Create architecture diagram",
@@ -121,8 +153,7 @@ export function createServer(opts: ServerOptions = {}) {
     },
   )
 
-  registerAppTool(
-    server,
+  tool(
     "create_diagram",
     {
       title: "Create diagram",
@@ -159,8 +190,7 @@ export function createServer(opts: ServerOptions = {}) {
     },
   )
 
-  registerAppTool(
-    server,
+  tool(
     "create_flowchart",
     {
       title: "Create flowchart",
@@ -214,7 +244,7 @@ export function createServer(opts: ServerOptions = {}) {
   }
   const annotations = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false }
 
-  registerAppTool(server, "create_sequence_diagram", {
+  tool("create_sequence_diagram", {
     title: "Create sequence diagram",
     description: SEQUENCE_DESCRIPTION(),
     inputSchema: {
@@ -238,7 +268,7 @@ export function createServer(opts: ServerOptions = {}) {
     _meta: meta,
   }, draw("Sequence diagram"))
 
-  registerAppTool(server, "create_state_diagram", {
+  tool("create_state_diagram", {
     title: "Create state diagram",
     description: STATE_DESCRIPTION(),
     inputSchema: {
@@ -260,7 +290,7 @@ export function createServer(opts: ServerOptions = {}) {
     _meta: meta,
   }, draw("State diagram"))
 
-  registerAppTool(server, "create_class_diagram", {
+  tool("create_class_diagram", {
     title: "Create class diagram",
     description: CLASS_DESCRIPTION(),
     inputSchema: {
@@ -284,7 +314,7 @@ export function createServer(opts: ServerOptions = {}) {
     _meta: meta,
   }, draw("Class diagram"))
 
-  registerAppTool(server, "create_er_diagram", {
+  tool("create_er_diagram", {
     title: "Create ER diagram",
     description: ER_DESCRIPTION(),
     inputSchema: {
@@ -308,8 +338,7 @@ export function createServer(opts: ServerOptions = {}) {
     _meta: meta,
   }, draw("ER diagram"))
 
-  registerAppTool(
-    server,
+  tool(
     "analyze_repository",
     {
       title: "Analyze repository architecture",
@@ -351,7 +380,91 @@ export function createServer(opts: ServerOptions = {}) {
         return failure("Repository analysis failed", error)
       }
     },
+    "create_architecture_diagram",
   )
+
+  const change = z.object({}).passthrough()
+  registerAppTool(server, "edit_diagram", {
+    title: "Edit diagram",
+    description: EDIT_DESCRIPTION(),
+    inputSchema: {
+      diagram: z.string().max(40).describe("the diagram id given in the result of the tool that drew it"),
+      title: z.string().max(120).optional(),
+      subtitle: z.string().max(140).optional(),
+      direction: z.enum(["TB", "LR", "RL", "BT"]).optional(),
+      add_nodes: z.array(change).max(MAX_NODES).optional()
+        .describe("new nodes / tables / classes / states / participants, with the same fields the drawing tool uses; an existing id is updated instead"),
+      add_connections: z.array(change).max(MAX_EDGES).optional()
+        .describe("new interfaces / connections / relationships / transitions / messages, with the same fields the drawing tool uses"),
+      add_groups: z.array(change).max(40).optional().describe("new containers (architecture), groups (create_diagram) or lanes (flowchart)"),
+      update: z.array(z.object({ id: z.string() }).passthrough()).max(MAX_NODES).optional()
+        .describe("changed fields of existing nodes or groups, e.g. [{id:'db', title:'AlloyDB'}]"),
+      remove: z.array(z.string()).max(MAX_EDGES).optional()
+        .describe("ids of nodes or groups to delete (their connections go too), or 'from>to' to delete a connection"),
+      ...common,
+    },
+    annotations,
+    _meta: meta,
+  }, async ({ diagram, save, workspace, ...delta }) => {
+    const sheet = findSheet(diagram)
+    if (!sheet) return failure("Edit failed", new Error(`No diagram "${diagram}" here (the server may have restarted). Draw it again with the tool that drew it.`))
+    try {
+      const { args, kept, summary } = applyChange(sheet.args, delta as Change, sheet.tool)
+      const drawer = drawers.get(sheet.tool)!
+      const parsed = drawer.schema.safeParse({ ...args, ...(save !== undefined ? { save } : {}), ...(workspace ? { workspace } : {}) })
+      if (!parsed.success) {
+        const issues = parsed.error.issues.slice(0, 5).map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
+        return failure("Edit failed", new Error(`the changed diagram is not valid for ${sheet.tool} (${issues})`))
+      }
+      const drawn = await drawing(() => drawer.run(parsed.data as never), sheet.memo)
+      const result = remembered(drawn.result, sheet.tool, args, drawn.memo, diagram.trim())
+      if (result.isError) return result
+      const [first, ...rest] = result.content
+      return {
+        ...result,
+        content: [{ ...first, text: `${summary} ${first.text}` }, ...rest],
+        structuredContent: { ...result.structuredContent, diagram: args, edit: kept },
+      }
+    } catch (error) {
+      return failure("Edit failed", error)
+    }
+  })
+
+  // Called by the view (never by the model) after the user drags shapes, so the next edit starts from that arrangement.
+  registerAppTool(server, "remember_layout", {
+    title: "Remember layout",
+    description: "Records where the user moved shapes in the live view, so edit_diagram keeps them there.",
+    inputSchema: {
+      diagram: z.string().max(40),
+      positions: z.record(z.string(), z.tuple([z.number(), z.number()])).nullable(),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { ui: { resourceUri: RESOURCE_URI, visibility: ["app"] as ("model" | "app")[] } },
+  }, async ({ diagram, positions }) => {
+    const sheet = findSheet(diagram)
+    const ok = Boolean(sheet?.memo)
+    if (sheet?.memo) adjustLayout(sheet.memo, positions)
+    if (sheet) {
+      // The view shown during the next edit starts from the same arrangement; its lines are routed afresh.
+      delete sheet.view.routes
+      if (!positions) delete sheet.view.positions
+      else sheet.view.positions = { ...(sheet.view.positions as object | undefined), ...positions }
+    }
+    return { content: [{ type: "text" as const, text: ok ? "Layout remembered." : "Nothing to remember." }] }
+  })
+
+  // Called by the view (never by the model) as an edit starts streaming: the diagram as it is now, shown at once.
+  registerAppTool(server, "show_diagram", {
+    title: "Show diagram",
+    description: "Returns a diagram drawn earlier, for the live view to show while an edit is applied.",
+    inputSchema: { diagram: z.string().max(40) },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { ui: { resourceUri: RESOURCE_URI, visibility: ["app"] as ("model" | "app")[] } },
+  }, async ({ diagram }) => {
+    const sheet = findSheet(diagram)
+    if (!sheet) return failure("Not found", new Error(`No diagram "${diagram}"`))
+    return { content: [{ type: "text" as const, text: "Diagram shown." }], structuredContent: { diagram: sheet.args, ...sheet.view } }
+  })
 
   registerAppResource(
     server,

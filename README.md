@@ -13,7 +13,7 @@ tokens tiny, diagrams appear in seconds, and every result is clean and fully edi
 Architecture (cloud, on-premises, SAP, AI systems with official icons), flowcharts with swimlanes, sequence diagrams,
 state machines, UML class diagrams, ER diagrams and repository analysis, in any direction (top-down, left-to-right,
 right-to-left, bottom-up). Watch it build inside the chat, drag shapes and the lines re-route live, ask for changes
-and everything already drawn stays exactly where it was, then export a native `.drawio` file.
+and only the change is sent and drawn while everything else stays where it was, then export a native `.drawio` file.
 
 It ships as an [MCP](https://modelcontextprotocol.io) server with an [MCP App](https://github.com/modelcontextprotocol/ext-apps)
 view, so it runs in VS Code (GitHub Copilot), Claude, Copilot CLI, Cursor, or any MCP host. There is also a VS Code
@@ -162,6 +162,7 @@ Because the hard part is not the model's job, mid-size models produce the same q
 | `create_er_diagram` | database schemas: tables with typed columns, PK / FK, crow's-foot cardinalities |
 | `create_diagram` | any other connected diagram (ML models, concept maps, org charts): optional groups `{id, title, parent?}` that can nest, nodes (a node without a group stays outside every group), interfaces |
 | `analyze_repository` | `"."`, a workspace folder, `owner/repo` or an https git URL; optional `ref`, `focus` |
+| `edit_diagram` | follow-up changes to a diagram already drawn: its id plus only what changes (`add_nodes`, `add_connections`, `add_groups`, `update`, `remove`). Everything already drawn, including shapes the user dragged, keeps its place and lines; a new node joins its zone and what sits below slides down to make room. A follow-up takes seconds and a few hundred tokens instead of a full redraw |
 
 All of them accept `workspace` (the absolute project path), which agents that start servers outside the project (Copilot
 CLI) pass so files are read from, and saved to, the right folder.

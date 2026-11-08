@@ -15,6 +15,9 @@ export const state = {
   flowOn: true,
   // Final layout computed by the server (grouped diagrams); used once the tool result has arrived.
   layout: null as SerialLayout | null,
+  // The server's id for this diagram and the positions it placed, so hand-made moves can be reported back for edits.
+  sheet: "",
+  pinned: {} as Positions,
 }
 
 // Items already shown once, so they only play their entrance animation the first time.

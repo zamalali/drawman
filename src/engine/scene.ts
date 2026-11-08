@@ -142,37 +142,68 @@ export type Positions = Record<string, Pt>
 const hit = (a: Box, b: Box, gap = 0) =>
   a[0] < b[0] + b[2] + gap && b[0] < a[0] + a[2] + gap && a[1] < b[1] + b[3] + gap && b[1] < a[1] + a[3] + gap
 
-// Cards without a given position (new nodes in an edit) join their zone below its lowest pinned member, or keep the
-// spot the fresh layout gave them; either way they move to the nearest free place so pinned cards never move.
+// Cards without a given position (new nodes in an edit) join their zone right below its lowest member. When that space
+// is taken, everything below the zone in the same column slides down together to make room, the way you would do it by
+// hand; nothing else moves. Cards without a zone take the nearest free spot. Returns how far each existing card slid.
 function settleNewCards(positions: Positions, out: Layout, zoneOfNode: Map<string, string>) {
+  const slid = new Map<string, number>()
   const fresh = [...out.cards.keys()].filter((id) => !(id in positions))
-  if (!fresh.length || fresh.length === out.cards.size) return
-  const placed: Box[] = [...out.cards].filter(([id]) => id in positions).map(([, b]) => b)
-  const free = (b: Box) => !placed.some((p) => hit(b, p, 24))
+  if (!fresh.length || fresh.length === out.cards.size) return slid
+  const done = new Set<string>()
+  const settled = (id: string) => id in positions || done.has(id)
+  const ancestors = (id: string) => {
+    const seen = new Set<string>()
+    let p = out.zones.get(id)?.parent
+    while (p && !seen.has(p)) { seen.add(p); p = out.zones.get(p)?.parent }
+    return seen
+  }
   for (const id of fresh) {
     const [fx, fy, w, h] = out.cards.get(id)!
     const zone = zoneOfNode.get(id)
-    const mates = zone ? [...out.cards].filter(([o]) => o in positions && zoneOfNode.get(o) === zone).map(([, b]) => b) : []
-    let [x, y] = [fx, fy]
-    if (mates.length) {
+    const own = zone ? out.zones.get(zone) : undefined
+    const mates = own ? [...out.cards].filter(([o]) => o !== id && settled(o) && zoneOfNode.get(o) === zone).map(([, b]) => b) : []
+    if (own && mates.length) {
       const low = mates.reduce((a, b) => (b[1] + b[3] > a[1] + a[3] ? b : a))
-      x = low[0]; y = low[1] + low[3] + CARD_GAP
+      const target: Box = [low[0], low[1] + low[3] + CARD_GAP, w, h]
+      const floor = low[1] + low[3]
+      const left = Math.min(own.box[0], low[0]) - 10, right = Math.max(own.box[0] + own.box[2], low[0] + low[2]) + 10
+      const related = (z: string) => z === zone || ancestors(zone!).has(z) || ancestors(z).has(zone!)
+      const below = (b: Box) => b[0] < right && b[0] + b[2] > left && b[1] >= floor
+      const zonesBelow = [...out.zones].filter(([z, { box }]) => !related(z) && below(box))
+      const cardsBelow = [...out.cards].filter(([c, b]) => c !== id && settled(c) && zoneOfNode.get(c) !== zone && below(b))
+      let dy = 0
+      for (const [, { box }] of zonesBelow) dy = Math.max(dy, target[1] + h + PAD + 30 - box[1])
+      for (const [, b] of cardsBelow) dy = Math.max(dy, target[1] + h + 24 - b[1])
+      if (dy > 0) {
+        dy = Math.ceil(dy / 10) * 10
+        for (const [, z] of zonesBelow) z.box = [z.box[0], z.box[1] + dy, z.box[2], z.box[3]]
+        for (const [c, b] of cardsBelow) {
+          out.cards.set(c, [b[0], b[1] + dy, b[2], b[3]])
+          if (c in positions) slid.set(c, (slid.get(c) ?? 0) + dy)
+        }
+      }
+      out.cards.set(id, target)
+      done.add(id)
+      continue
     }
-    let best: Box = [x, y, w, h]
+    const taken = () => [...out.cards].filter(([o]) => o !== id && settled(o)).map(([, b]) => b)
+    const free = (b: Box) => !taken().some((p) => hit(b, p, 24))
+    let best: Box = [fx, fy, w, h]
     if (!free(best)) {
       let found: Box | null = null
       for (let r = 1; r <= 80 && !found; r++) {
         const ring: Box[] = []
-        for (let dx = -r; dx <= r; dx++) for (const dy of [-r, r]) ring.push([x + dx * 20, y + dy * 20, w, h])
-        for (let dy = -r + 1; dy < r; dy++) for (const dx of [-r, r]) ring.push([x + dx * 20, y + dy * 20, w, h])
-        ring.sort((a, b) => Math.hypot(a[0] - x, a[1] - y) - Math.hypot(b[0] - x, b[1] - y))
+        for (let dx = -r; dx <= r; dx++) for (const dy of [-r, r]) ring.push([fx + dx * 20, fy + dy * 20, w, h])
+        for (let dy = -r + 1; dy < r; dy++) for (const dx of [-r, r]) ring.push([fx + dx * 20, fy + dy * 20, w, h])
+        ring.sort((a, b) => Math.hypot(a[0] - fx, a[1] - fy) - Math.hypot(b[0] - fx, b[1] - fy))
         found = ring.find((b) => b[0] >= 40 && b[1] >= 150 && free(b)) ?? null
       }
       if (found) best = found
     }
     out.cards.set(id, best)
-    placed.push(best)
+    done.add(id)
   }
+  return slid
 }
 
 function applyPositions(positions: Positions, out: Layout) {
@@ -188,7 +219,7 @@ function applyPositions(positions: Positions, out: Layout) {
     const box = cards.get(key)
     if (box) cards.set(key, [Math.max(20, x), Math.max(120, y), box[2], box[3]])
   }
-  settleNewCards(positions, out, zoneOfNode)
+  const slid = settleNewCards(positions, out, zoneOfNode)
   const grow = (box: Box, [x0, y0, x1, y1]: [number, number, number, number]): Box => {
     const nx = Math.min(box[0], x0), ny = Math.min(box[1], y0)
     return [nx, ny, Math.max(box[0] + box[2], x1) - nx, Math.max(box[1] + box[3], y1) - ny]
@@ -234,6 +265,7 @@ function applyPositions(positions: Positions, out: Layout) {
     }
     f.box = box
   }
+  return slid
 }
 
 export const GROUP_PALETTE: ZoneKey[] = ["runtime", "data", "ai", "integration", "build", "edge", "secops", "consumers", "egress", "cicd", "external"]
@@ -283,7 +315,7 @@ export function buildScene(facts: Facts, positions?: Positions, reroute?: Rerout
   const placedBy = !base && !facts.flow ? placer?.(facts) : undefined
   const placed = placedBy ? serialiseLayout(placedBy) : undefined
   const laid: Layout = base ? restoreLayout(base, facts) : placedBy ?? (facts.flow ? layoutFlow(facts) : facts.groups ? layoutGroups(facts) : layout(facts))
-  if (positions && Object.keys(positions).length) applyPositions(positions, laid)
+  const slid = positions && Object.keys(positions).length ? applyPositions(positions, laid) : new Map<string, number>()
   const { zones, cards, frames, place } = laid
   const boxes = [...[...zones.values()].map((z) => z.box), ...frames.map((f) => f.box), ...cards.values()]
   const right = boxes.length ? Math.max(...boxes.map(([x, , w]) => x + w)) : 600
@@ -294,9 +326,12 @@ export function buildScene(facts: Facts, positions?: Positions, reroute?: Rerout
       const a = pts[i]
       return Math.max(a[0], b[0]) > x + 1 && Math.min(a[0], b[0]) < x + w - 1 && Math.max(a[1], b[1]) > y + 1 && Math.min(a[1], b[1]) < y + h - 1
     }))
-  // Routes kept from before (a drag in the view, or an edit): only while both ends stayed put and no card is in the way.
+  // Routes kept from before (a drag in the view, or an edit): only while both ends stayed put (or slid down together to
+  // make room for a new card, then the route slides with them) and no card is in the way.
+  const shift = (id: string) => slid.get(id) ?? 0
+  const before = (e: Interface): Pt[] => reroute!.previous.get(e.id)!.map(([x, y]) => [x, y + shift(e.from)])
   const keep = reroute ? edgesIn.filter((e) => !reroute.moved.has(e.from) && !reroute.moved.has(e.to) && reroute.previous.has(e.id) &&
-    !crossesCard(reroute.previous.get(e.id)!, e)) : []
+    shift(e.from) === shift(e.to) && !crossesCard(before(e), e)) : []
   const keepIds = new Set(keep.map((e) => e.id))
   const decisions = facts.flow ? new Set(facts.nodes.filter((n) => ["decision", "choice", "initial", "final"].includes(n.shape ?? "")).map((n) => n.id)) : undefined
   let sides: Map<string, [Dir[], Dir[]]> | undefined
@@ -317,11 +352,11 @@ export function buildScene(facts: Facts, positions?: Positions, reroute?: Rerout
     const pts = laid.routes?.get(e.id)
     if (pts && !keepIds.has(e.id) && !moved.has(e.from) && !moved.has(e.to) && !crossesCard(pts, e)) preset.set(e.id, pts)
   }
-  const fixed = [...keep.map((e) => reroute!.previous.get(e.id)!), ...preset.values()]
+  const fixed = [...keep.map(before), ...preset.values()]
   const { routes, failed } = routeEdges(edgesIn.filter((e) => !keepIds.has(e.id) && !preset.has(e.id)), cards, zones, [0, 110, right + 40, bottom + 30],
     facts.flow ? { exact: decisions, straightFirst: true, crossCost: 120, refine: 2, centrePull: 8, sides, fixed } : { crossCost: 60, fixed })
   for (const [id, pts] of preset) routes.set(id, pts)
-  for (const e of keep) routes.set(e.id, reroute!.previous.get(e.id)!)
+  for (const e of keep) routes.set(e.id, before(e))
   // Self-loops (a node that talks to itself, a self-referencing table) leave and re-enter the card's right side.
   for (const e of facts.interfaces) {
     if (e.from !== e.to || !cards.has(e.from)) continue

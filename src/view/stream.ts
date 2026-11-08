@@ -103,8 +103,8 @@ export function draw(moved?: Set<string>) {
   drawLegend(scene)
   const titles = new Map(scene.facts.nodes.map((n) => [n.id, n.title]))
   const [, , placing, linking] = nouns(scene)
-  for (const c of addedCards) tick(`＋ <b>${escHtml(c.node.title)}</b>${c.zoneTitle ? ` → ${escHtml(c.zoneTitle)}` : ""}`)
-  for (const e of addedEdges) tick(scene.facts.flow || scene.seq
+  if (!quiet) for (const c of addedCards) tick(`＋ <b>${escHtml(c.node.title)}</b>${c.zoneTitle ? ` → ${escHtml(c.zoneTitle)}` : ""}`)
+  if (!quiet) for (const e of addedEdges) tick(scene.facts.flow || scene.seq
     ? `↳ ${escHtml(titles.get(e.from) ?? "")} → ${escHtml(titles.get(e.to) ?? "")}${e.label ? ` · <b>${escHtml(e.label)}</b>` : ""}`
     : `↳ <b>${e.id}</b> ${escHtml(titles.get(e.from) ?? "")} → ${escHtml(titles.get(e.to) ?? "")}${e.protocol ? ` · ${escHtml(e.protocol)}` : ""}`)
   if (!state.done) {
@@ -118,6 +118,8 @@ export function draw(moved?: Set<string>) {
 
 function finish(stats?: { cards: number; zones: number; edges: number }) {
   state.done = true
+  // The server's routes were for revealing the result; from here on drags re-route from what is on screen.
+  kept = null
   world.classList.add("editable")
   ui.download.disabled = !state.xml
   ui.open.disabled = !state.xml
@@ -132,10 +134,48 @@ function finish(stats?: { cards: number; zones: number; edges: number }) {
   if (!state.userMoved) fitTo(state.current)
 }
 
-app.ontoolinputpartial = ({ arguments: args }) => { if (args && !inputFinal && !("repository" in args)) receive(args, false) }
+// An edit (edit_diagram) streams only the change. As soon as its diagram id arrives, the view fetches the diagram as
+// it is and shows it at once; when the result comes, only the added parts are revealed.
+type Shown = { diagram?: Record<string, unknown>; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]> }
+const isEdit = (args: Record<string, unknown>) => typeof args.diagram === "string"
+let editing = false
+const APPLYING = "Applying the change…"
+function awaitEdit(args: Record<string, unknown>) {
+  setStatus("building", APPLYING)
+  ui.empty.querySelector("div:last-child")!.textContent = "Applying the change to the diagram…"
+  // The id may still be arriving; ask for the diagram once it is complete.
+  const id = String(args.diagram)
+  if (editing || !/^[0-9a-f]{8}$/.test(id)) return
+  editing = true
+  void app.callServerTool({ name: "show_diagram", arguments: { diagram: id } }).then((r) => {
+    const sc = r.structuredContent as Shown | undefined
+    if (r.isError || !sc?.diagram || resultReady) return
+    useServerLayout(sc, true)
+    const [nodeKey, edgeKey] = INPUT_KEYS[diagramKind(sc.diagram)]
+    shownNodes = (sc.diagram[nodeKey] as unknown[] | undefined)?.length ?? 0
+    shownEdges = (sc.diagram[edgeKey] as unknown[] | undefined)?.length ?? 0
+    quietly(() => receive(sc.diagram!, true))
+    setStatus("building", APPLYING)
+  }).catch(() => undefined)
+}
+// Existing items appear without a line each in the activity feed; only what an edit adds is announced.
+let quiet = false
+function quietly(fn: () => void) { quiet = true; try { fn() } finally { quiet = false } }
+function useServerLayout(sc: Shown, replace: boolean) {
+  if (replace) { state.pinned = sc.positions ?? {}; state.positions = { ...state.pinned } }
+  else if (sc.positions) { state.pinned = sc.positions; state.positions = { ...sc.positions, ...state.positions } }
+  kept = sc.routes ? new Map(Object.entries(sc.routes)) : null
+  if (sc.layout) state.layout = sc.layout
+}
+app.ontoolinputpartial = ({ arguments: args }) => {
+  if (!args || inputFinal || "repository" in args) return
+  if (isEdit(args)) awaitEdit(args)
+  else receive(args, false)
+}
 app.ontoolinput = ({ arguments: args }) => {
   if (!args) return
   if (typeof args.repository === "string") showScanning(args.repository)
+  else if (isEdit(args)) awaitEdit(args)
   else receive(args, true)
 }
 app.ontoolresult = (result) => {
@@ -143,13 +183,22 @@ app.ontoolresult = (result) => {
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
     return
   }
-  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]> } | undefined
+  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]>; edit?: { nodes: number; edges: number }; sheet?: string } | undefined
   state.xml = state.serverXml = sc?.xml ?? ""
   resultStats = sc?.stats
-  // Edits: existing nodes keep their places (the server pinned them), so the view uses the same positions.
-  if (sc?.positions) state.positions = { ...sc.positions, ...state.positions }
-  if (sc?.routes) kept = new Map(Object.entries(sc.routes))
-  if (sc?.layout) state.layout = sc.layout
+  if (sc?.sheet) state.sheet = sc.sheet
+  // Edits: existing nodes keep their places (the server pinned them, and slid some down to make room), so the view
+  // takes the server's positions and routes as they are.
+  if (sc?.edit && sc.diagram) {
+    resultReady = true
+    useServerLayout(sc, true)
+    shownNodes = sc.edit.nodes
+    shownEdges = sc.edit.edges
+    quietly(() => receive(sc.diagram!, true))
+    if (!beat) step()
+    return
+  }
+  if (sc?.positions || sc?.routes || sc?.layout) useServerLayout(sc, false)
   if (sc?.layout || sc?.positions) draw()
   if (sc?.analysis) showAnalysis(sc.analysis)
   if (sc?.handoff) {

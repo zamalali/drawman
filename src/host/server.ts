@@ -61,7 +61,7 @@ How to work:
   citing interface numbers (IF-01, IF-02...); for flowcharts walk through the main path and each decision.
   Never paste XML, JSON or coordinates.
 - ${config.profile.defaults || "When unspecified, follow cloud best practice: keyless CI/CD federation, least-privilege identities, managed secrets, central logging and monitoring, private egress."}
-- To modify an existing diagram call the tool again with the COMPLETE updated nodes and interfaces.
+- To change a diagram you already drew, call edit_diagram with its id and only the changes; never redraw it from scratch.
 - For questions that do not need a diagram, answer briefly in plain text.`
 
 type Emit = (event: Record<string, unknown>) => void

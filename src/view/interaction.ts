@@ -108,7 +108,7 @@ function endCardDrag() {
   setTimeout(() => { suppressClick = false }, 0)
   cancelAnimationFrame(pending)
   pending = 0
-  draw()
+  draw(new Set(Object.keys(d.origin).filter((k) => !k.startsWith("zone:"))))
   world.classList.remove("moving")
   highlight(null)
   commitEdit(`Moved <b>${escHtml(d.label)}</b> · ${state.current?.facts.flow ? "connections" : "interfaces"} re-routed`)
@@ -122,12 +122,17 @@ function commitEdit(message: string) {
   tick(message + (state.current.unrouted.length ? ` · ${state.current.unrouted.length} could not be routed` : ""))
   void app.updateModelContext({
     content: [{ type: "text", text: edited
-      ? `The user rearranged the draw.io diagram by hand (moved: ${Object.keys(state.positions).map((k) => k.replace(/^zone:/, "zone ")).join(", ")}). Keep that arrangement in mind if you redraw it.`
+      ? `The user rearranged the draw.io diagram by hand (moved: ${Object.keys(moved()).map((k) => k.replace(/^zone:/, "zone ")).join(", ")}). edit_diagram keeps that arrangement.`
       : "The user reset the draw.io diagram to the automatic layout." }],
   }).catch(() => undefined)
+  // The server starts the next edit from what the user sees now.
+  if (state.sheet) void app.callServerTool({ name: "remember_layout", arguments: { diagram: state.sheet, positions: edited ? moved() : null } }).catch(() => undefined)
 }
+// Only what the user moved, not the positions the server pinned after an edit.
+const moved = () => Object.fromEntries(Object.entries(state.positions).filter(([k, [x, y]]) => state.pinned[k]?.[0] !== x || state.pinned[k]?.[1] !== y))
 ui.reset.onclick = () => {
   state.positions = {}
+  state.pinned = {}
   draw()
   commitEdit("↺ <b>Automatic layout</b> restored")
   state.userMoved = false

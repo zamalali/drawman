@@ -2,6 +2,7 @@
 import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
+import { AsyncLocalStorage } from "node:async_hooks"
 import { deflateRawSync } from "node:zlib"
 import { config } from "../config.js"
 import { diagramKind, normaliseFacts, renderDiagram, type DiagramInput, type Positions, type Pt, type Reroute } from "../engine/index.js"
@@ -20,45 +21,76 @@ const opener = (title: string, url: string) => `<!doctype html><meta charset="ut
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80) || "architecture"
 
-// Edits keep the diagram steady: the server remembers the last layouts it drew, and when a call reuses most of an
-// earlier diagram's node ids, those nodes (and their groups) stay where they were; only new nodes are placed.
-interface Drawn { kind: string; ids: Set<string>; positions: Positions; routes: Map<string, Pt[]> }
-const drawn: Drawn[] = []
+const placedAt = (scene: ReturnType<typeof renderDiagram>["scene"]): Positions => Object.fromEntries([
+  ...scene.cards.map((c) => [c.node.id, [c.box[0], c.box[1]]]),
+  ...scene.zones.map((z) => [`zone:${z.id}`, [z.box[0], z.box[1]]]),
+])
+
+// Edits keep the diagram steady: each drawing's layout (positions and routes) is kept with it, and an edit starts from
+// it, so existing nodes (and their groups) stay where they were and only new nodes are placed. The tool call says which
+// layout to use (layoutContext): an edit names its diagram; a plain redraw may match a recent drawing of the same
+// connection by its node ids, which is never done on the shared HTTP server.
+export interface Memo { kind: string; ids: Set<string>; positions: Positions; routes: Map<string, Pt[]> }
+export interface LayoutContext { base?: Memo; recent?: Memo[]; memo?: Memo }
+export const layoutContext = new AsyncLocalStorage<LayoutContext>()
 // Connections are matched by their ends (from>to, numbered when repeated), since ids are positional.
 const routeKeys = (edges: { id: string; from: string; to: string }[]) => {
   const seen = new Map<string, number>()
   return edges.map((e) => { const k = `${e.from}>${e.to}`; const n = seen.get(k) ?? 0; seen.set(k, n + 1); return [e.id, `${k}#${n}`] as const })
 }
-function previousLayout(args: DiagramInput): { positions: Positions; keep: Reroute } | undefined {
-  const kind = diagramKind(args)
-  if (kind === "sequence") return undefined
-  const facts = normaliseFacts(args)
-  const ids = new Set(facts.nodes.map((n) => n.id))
-  let best: Drawn | undefined, score = 0
-  for (const d of drawn) {
+const memoKind = (facts: ReturnType<typeof renderDiagram>["facts"]) =>
+  facts.sequence ? "sequence" : facts.flow ? facts.flow.family : facts.groups ? "general" : "architecture"
+const kindOf = (args: DiagramInput): string => diagramKind(args)
+
+function closest(args: DiagramInput, recent: Memo[]) {
+  const kind = kindOf(args)
+  const ids = new Set(normaliseFacts(args).nodes.map((n) => n.id))
+  let best: Memo | undefined, score = 0
+  for (const d of recent) {
     if (d.kind !== kind) continue
     const kept = [...d.ids].filter((id) => ids.has(id)).length
     const s = kept / Math.max(d.ids.size, 1)
     if (kept && s >= 0.5 && s > score) { best = d; score = s }
   }
-  if (!best) return undefined
+  return best
+}
+function previousLayout(args: DiagramInput, ctx: LayoutContext | undefined): { positions: Positions; keep: Reroute } | undefined {
+  if (!ctx || diagramKind(args) === "sequence") return undefined
+  const best = ctx.base && ctx.base.kind === kindOf(args) ? ctx.base : ctx.recent ? closest(args, ctx.recent) : undefined
+  if (!best || !Object.keys(best.positions).length) return undefined
+  const facts = normaliseFacts(args)
+  const ids = new Set(facts.nodes.map((n) => n.id))
   const positions = Object.fromEntries(Object.entries(best.positions).filter(([k]) => k.startsWith("zone:") || ids.has(k)))
+  if (!Object.keys(positions).some((k) => ids.has(k))) return undefined
   const previous = new Map<string, Pt[]>()
   for (const [id, key] of routeKeys(facts.interfaces)) { const r = best.routes.get(key); if (r) previous.set(id, r) }
-  return { positions, keep: { moved: new Set([...ids].filter((id) => !best!.ids.has(id))), previous } }
+  return { positions, keep: { moved: new Set([...ids].filter((id) => !best.ids.has(id))), previous } }
 }
-function remember(facts: ReturnType<typeof renderDiagram>["facts"], scene: ReturnType<typeof renderDiagram>["scene"]) {
-  const kind = diagramKind(facts.sequence ? { participants: [] } : facts.flow ? { connections: [] } : facts.groups ? { groups: [] } : {})
-  const positions: Positions = {}
-  for (const c of scene.cards) positions[c.node.id] = [c.box[0], c.box[1]]
-  for (const z of scene.zones) positions[`zone:${z.id}`] = [z.box[0], z.box[1]]
+function remember(ctx: LayoutContext | undefined, facts: ReturnType<typeof renderDiagram>["facts"], scene: ReturnType<typeof renderDiagram>["scene"]) {
+  if (!ctx) return
   const byId = new Map(scene.edges.map((e) => [e.id, e.points]))
-  const routes = new Map(routeKeys(scene.edges).map(([id, key]) => [key, byId.get(id)!]))
-  const entry = { kind: facts.flow ? facts.flow.family : kind, ids: new Set(scene.cards.map((c) => c.node.id)), positions, routes }
-  const same = drawn.findIndex((d) => d.kind === entry.kind && [...d.ids].every((id) => entry.ids.has(id)))
-  if (same >= 0) drawn.splice(same, 1)
-  drawn.unshift(entry)
-  drawn.length = Math.min(drawn.length, 12)
+  const memo: Memo = {
+    kind: memoKind(facts), ids: new Set(scene.cards.map((c) => c.node.id)), positions: placedAt(scene),
+    routes: new Map(routeKeys(scene.edges).map(([id, key]) => [key, byId.get(id)!])),
+  }
+  ctx.memo = memo
+  const recent = ctx.recent
+  if (!recent) return
+  const same = recent.findIndex((d) => d.kind === memo.kind && [...d.ids].every((id) => memo.ids.has(id)))
+  if (same >= 0) recent.splice(same, 1)
+  recent.unshift(memo)
+  recent.length = Math.min(recent.length, 12)
+}
+
+// Shapes the user dragged in the view: the next edit starts from them. Their lines are routed afresh; null (the view's
+// reset) forgets the arrangement, so the next edit is laid out automatically like the view now shows it.
+export function adjustLayout(memo: Memo, moved: Positions | null) {
+  if (!moved) { memo.positions = {}; memo.routes.clear(); return }
+  Object.assign(memo.positions, moved)
+  for (const key of [...memo.routes.keys()]) {
+    const [from, to] = key.replace(/#\d+$/, "").split(">")
+    if (from in moved || to in moved) memo.routes.delete(key)
+  }
 }
 
 function saveDrawio(title: string, xml: string): { file?: string; open?: string; note?: string } {
@@ -80,10 +112,11 @@ function saveDrawio(title: string, xml: string): { file?: string; open?: string;
 }
 
 export function summarise(args: DiagramInput, save: boolean, withXml = true) {
-  const prev = previousLayout(args)
+  const ctx = layoutContext.getStore()
+  const prev = previousLayout(args, ctx)
   const pinned = prev?.positions
   const { facts, xml, stats, scene } = renderDiagram(args, false, pinned, prev?.keep)
-  remember(facts, scene)
+  remember(ctx, facts, scene)
   const frames = scene.frames.map((f) => f.title).join(", ")
   const zones = scene.zones.map((z) => `${z.title} (${scene.cards.filter((c) => c.zoneId === z.id).length})`).join(", ")
   const titles = new Map(facts.nodes.map((n) => [n.id, n.title]))
@@ -114,7 +147,7 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
           `${frames ? ` across ${frames}` : ""} [${zones}], ${stats.edges} routed interfaces [${ifs}]. ` +
           `draw.io file: ${(stats.bytes / 1024).toFixed(0)} KB. ${notes}`).trim(),
     }],
-    structuredContent: { title: facts.title, stats, ...(withXml || !file ? { xml } : {}), ...(file ? { file } : {}), ...(open ? { open } : {}), ...(withXml && scene.placed ? { layout: scene.placed } : {}), ...(withXml && pinned ? { positions: pinned, routes: Object.fromEntries(scene.edges.map((e) => [e.id, e.points])) } : {}) } as Record<string, unknown>,
+    structuredContent: { title: facts.title, stats, ...(withXml || !file ? { xml } : {}), ...(file ? { file } : {}), ...(open ? { open } : {}), ...(withXml && scene.placed ? { layout: scene.placed } : {}), ...(withXml && pinned ? { positions: placedAt(scene), routes: Object.fromEntries(scene.edges.map((e) => [e.id, e.points])) } : {}) } as Record<string, unknown>,
   }
 }
 

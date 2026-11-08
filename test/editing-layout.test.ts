@@ -1,6 +1,10 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { summarise } from "../src/mcp/output.js"
+import { layoutContext, summarise as render, type Memo } from "../src/mcp/output.js"
+
+// One connection's memory of recent layouts, as the stdio server keeps it.
+const recent: Memo[] = []
+const summarise = (args: Record<string, unknown>, save: boolean, withXml: boolean) => layoutContext.run({ recent }, () => render(args, save, withXml))
 
 type Box = [number, number, number, number]
 const boxes = (r: ReturnType<typeof summarise>) => {
@@ -91,8 +95,38 @@ const grouped = (extra: boolean) => ({
 })
 editKeepsPlaces("grouped diagram, one node added", grouped(false), grouped(true), ["alerts"])
 
+test("without a layout context (the shared HTTP server, the CLI) nothing is remembered between calls", () => {
+  render(er(false), false, true)
+  assert.equal(render(er(true), false, true).structuredContent.positions, undefined)
+})
+
 test("a different diagram is laid out fresh, not pinned to an earlier one", () => {
   summarise(er(false), false, true)
   const other = summarise({ ...er(false), entities: [{ id: "x", name: "x", fields: [] }, { id: "y", name: "y", fields: [] }], relationships: [] }, false, true)
   assert.equal(other.structuredContent.positions, undefined)
+})
+
+test("a new card joins its zone; what sits below that zone slides down together to make room", () => {
+  const stack = (extra: boolean) => ({
+    title: "Room",
+    nodes: [
+      { id: "lb", kind: "load_balancer", title: "LB" }, { id: "web", kind: "cloud_run", title: "Web" }, { id: "api", kind: "cloud_run", title: "API" },
+      ...(extra ? [{ id: "jobs", kind: "cloud_run", title: "Jobs" }] : []),
+      { id: "sql", kind: "cloud_sql", title: "SQL" }, { id: "secrets", kind: "secret_manager", title: "Secrets" }, { id: "logs", kind: "cloud_logging", title: "Logs" },
+    ],
+    interfaces: [
+      { from: "lb", to: "web" }, { from: "web", to: "api" }, { from: "api", to: "sql" }, { from: "api", to: "secrets" }, { from: "secrets", to: "logs" },
+      ...(extra ? [{ from: "api", to: "jobs" }] : []),
+    ],
+  })
+  const a = boxes(summarise(stack(false), false, true))
+  const b = boxes(summarise(stack(true), false, true))
+  const runtime = [...b].find(([id]) => id.includes("runtime"))![1]
+  const jobs = b.get("jobs")!
+  assert.ok(jobs[0] >= runtime[0] && jobs[1] >= runtime[1] && jobs[0] + jobs[2] <= runtime[0] + runtime[2] && jobs[1] + jobs[3] <= runtime[1] + runtime[3], "Jobs sits inside Runtime")
+  const dy = b.get("secrets")![1] - a.get("secrets")![1]
+  assert.ok(dy > 0, "the zone below slid down")
+  assert.equal(b.get("logs")![1] - a.get("logs")![1], dy, "everything below slid by the same amount")
+  for (const id of ["lb", "web", "api", "sql"]) assert.deepEqual(b.get(id)!.slice(0, 2), a.get(id)!.slice(0, 2), `${id} did not move`)
+  for (const o of ["lb", "web", "api", "sql", "secrets", "logs"]) assert.ok(!overlaps(jobs, b.get(o)!), `jobs overlaps ${o}`)
 })

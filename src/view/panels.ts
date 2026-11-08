@@ -33,7 +33,7 @@ export function showInspector(id: string) {
       ? `Explain the step "${n.title}" in this flowchart: what happens there and where each of its branches leads.`
       : `Explain the role of "${n.title}" in this architecture and walk through its interfaces ${ifs.map((e) => e.id).join(", ")}.`)
   ui.inspector.querySelector<HTMLButtonElement>('[data-ask="remove"]')!.onclick = () =>
-    ask(`Remove "${n.title}" (${n.id}) from the diagram and redraw it with every interface it had either rewired or removed.`)
+    ask(`Remove "${n.title}" (${n.id}) from the diagram, rewiring or removing every interface it had.`)
 }
 export function hideInspector() { ui.inspector.hidden = true }
 
@@ -48,42 +48,42 @@ export function showSuggestions() {
   const ideas: [string, string][] = []
   const family = state.current?.seq ? "sequence" : state.current?.facts.flow?.family
   if (family === "sequence") {
-    ideas.push(["Add error paths", "Add the error, timeout and retry paths to this sequence diagram (as alt fragments) and redraw it."])
-    ideas.push(["Add caching", "Add a cache in front of the slowest call in this sequence and redraw the diagram."])
+    ideas.push(["Add error paths", "Add the error, timeout and retry paths to this sequence diagram (as alt fragments)."])
+    ideas.push(["Add caching", "Add a cache in front of the slowest call in this sequence."])
     ideas.push(["Explain the flow", "Walk me through this sequence diagram message by message."])
   } else if (family === "state") {
-    ideas.push(["Add error states", "Add the missing failure and timeout states and transitions to this state machine and redraw it."])
-    ideas.push(["Add guards", "Add guard conditions and actions to the transitions where they matter and redraw the state machine."])
+    ideas.push(["Add error states", "Add the missing failure and timeout states and transitions to this state machine."])
+    ideas.push(["Add guards", "Add guard conditions and actions to the transitions where they matter."])
     ideas.push(["Explain it", "Explain this state machine: the normal path and every way it can end."])
   } else if (family === "class") {
-    ideas.push(["Apply a pattern", "Refactor this class diagram with a suitable design pattern (e.g. strategy or repository) and redraw it."])
-    ideas.push(["Add methods", "Add the key methods and their signatures to the classes and redraw the class diagram."])
+    ideas.push(["Apply a pattern", "Refactor this class diagram with a suitable design pattern (e.g. strategy or repository)."])
+    ideas.push(["Add methods", "Add the key methods and their signatures to the classes."])
     ideas.push(["Generate the code", "Generate the code skeleton for these classes in TypeScript."])
   } else if (family === "er") {
-    ideas.push(["Add indexes and audit", "Add audit columns (created_at, updated_at) and the important foreign key indexes, then redraw the ER diagram."])
+    ideas.push(["Add indexes and audit", "Add audit columns (created_at, updated_at) and the important foreign key indexes."])
     ideas.push(["Generate the SQL", "Generate the PostgreSQL DDL for this schema."])
-    ideas.push(["Normalise it", "Review this schema for normalisation issues and redraw the improved ER diagram."])
+    ideas.push(["Normalise it", "Review this schema for normalisation issues and fix them in the diagram."])
   } else if (state.current?.facts.flow) {
-    ideas.push(["Add error handling", "Add the missing error, timeout and exception paths to this flowchart and redraw it."])
+    ideas.push(["Add error handling", "Add the missing error, timeout and exception paths to this flowchart."])
     ideas.push([state.current.facts.flow.lanes.length ? "Simplify it" : "Add swimlanes",
       state.current.facts.flow.lanes.length ? "Make a simpler version of this flowchart for a non-technical audience and redraw it."
-        : "Split this flowchart into swimlanes by who performs each step and redraw it."])
+        : "Split this flowchart into swimlanes by who performs each step."])
     ideas.push(["Explain it step by step", "Walk me through this flowchart step by step, including every decision and where each branch leads."])
   }
   if (state.current?.facts.groups) {
     ideas.push(["Explain it step by step", "Walk me through this diagram step by step using the F numbers."])
-    ideas.push(["Add more detail", "Expand the most important group into its sub-steps and redraw the diagram."])
+    ideas.push(["Add more detail", "Expand the most important group into its sub-steps."])
     ideas.push(["Simplify it", "Make a simpler version of this diagram for a non-technical audience and redraw it."])
   }
   const cloud = [...kinds].find((k) => k.startsWith("aws_")) ? "aws" : [...kinds].find((k) => k.startsWith("az_")) ? "azure" : "gcp"
   if (!state.current?.facts.groups && !state.current?.facts.flow && !state.current?.seq && !kinds.has("cloud_monitoring") && !kinds.has("aws_cloudwatch") && !kinds.has("az_monitor") && !kinds.has("prometheus")) {
-    ideas.push(["Add observability", cloud === "aws" ? "Add CloudWatch and X-Ray with the right interfaces and redraw the diagram."
-      : cloud === "azure" ? "Add Azure Monitor, Application Insights and Log Analytics and redraw the diagram."
-      : "Add logging, monitoring and tracing with the right interfaces and redraw the diagram."])
+    ideas.push(["Add observability", cloud === "aws" ? "Add CloudWatch and X-Ray with the right interfaces."
+      : cloud === "azure" ? "Add Azure Monitor, Application Insights and Log Analytics."
+      : "Add logging, monitoring and tracing with the right interfaces."])
   }
   if (!state.current?.facts.groups && !state.current?.facts.flow && !state.current?.seq) {
-    ideas.push(["Harden security", "Add the missing security controls (WAF, identity, secrets, encryption) where they belong and redraw the diagram."])
-    ideas.push(["Make it multi-region", "Make this architecture highly available across two regions and redraw it."])
+    ideas.push(["Harden security", "Add the missing security controls (WAF, identity, secrets, encryption) where they belong."])
+    ideas.push(["Make it multi-region", "Make this architecture highly available across two regions."])
     ideas.push(["Explain the data flow", "Walk me through the end-to-end request and data flow using the IF numbers."])
   }
   ui.suggest.replaceChildren(...ideas.slice(0, 3).map(([label, prompt]) => {

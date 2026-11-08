@@ -37,7 +37,7 @@ test("tools advertise the MCP App view and the view resource is served", async (
   const { tools } = await client.listTools()
   assert.deepEqual(tools.map((t) => t.name).sort(), [
     "analyze_repository", "create_architecture_diagram", "create_class_diagram", "create_diagram", "create_er_diagram",
-    "create_flowchart", "create_sequence_diagram", "create_state_diagram",
+    "create_flowchart", "create_sequence_diagram", "create_state_diagram", "edit_diagram", "remember_layout", "show_diagram",
   ])
   for (const t of tools) assert.equal((t._meta as { ui: { resourceUri: string } }).ui.resourceUri, RESOURCE_URI)
   if (existsSync(new URL("../dist/view/view.html", import.meta.url))) {

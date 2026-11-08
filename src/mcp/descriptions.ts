@@ -34,7 +34,7 @@ ${org()}
 Vocabulary (platform / zone: kinds):
 ${vocabulary()}
 
-To change an existing diagram, call this tool again with the COMPLETE updated node and interface lists.
+To change it afterwards, call edit_diagram with the diagram id from the result and only the changes.
 For flowcharts, business processes, approval and decision flows use create_flowchart; for API call flows
 create_sequence_diagram; for lifecycles create_state_diagram; for object models create_class_diagram; for database
 schemas create_er_diagram; for other diagrams that are NOT cloud or software infrastructure (ML model architectures
@@ -54,7 +54,7 @@ Write the arguments in this order: title, subtitle, direction, lanes, then ALL n
   Loops back to an earlier step (retry, rework) are fine.
 - direction: "TB" top-down (default), "LR" left-to-right (short linear processes), "RL" right-to-left or "BT"
   bottom-to-top. lanes only when roles or departments matter.
-- Up to 200 nodes. To change a flowchart, call the tool again with the COMPLETE updated nodes and connections.`
+- Up to 200 nodes. To change it afterwards, call edit_diagram with the diagram id from the result and only the changes.`
 
 const NOT_FOR = `These tools draw boxes and the lines between them. They cannot draw spatial or pixel-accurate pictures:
 floor plans, maps, seating plans, UI mockups / wireframes, charts or graphs of data, illustrations. For those, say so
@@ -74,7 +74,7 @@ Write title, then ALL participants, then ALL messages, in time order.
 - Inside messages you can also put control items, in order: {fragment: "alt" | "opt" | "loop" | "par" | "critical" | "break",
   label: "condition"} opens a box, {else: "condition"} starts its next branch, {end: true} closes it, and
   {note: "text", over: "participant id" or [ids]} adds a note. Fragments may nest.
-- 2-10 participants, 2-60 messages. To change it, call again with the COMPLETE lists.`
+- 2-10 participants, 2-60 messages. To change it afterwards, call edit_diagram with the diagram id from the result and only the changes.`
 
 export const STATE_DESCRIPTION = () => `Draw a UML state machine (state diagram) as a live, editable draw.io diagram: lifecycles and statuses of
 orders, tickets, payments, documents, connections, workflows, protocol or UI states. Layout and routing are computed.
@@ -83,7 +83,7 @@ Write title, direction, then ALL states, then ALL transitions.
 - states: {id, title, type?, detail?}. type is initial (the start dot, no title), final (end bullseye), state (default) or
   choice (a decision diamond). detail holds entry / do / exit activities, e.g. "entry / send email".
 - transitions: {from, to, event?, guard?, action?} drawn as "event [guard] / action". A state may transition to itself.
-- direction: "TB" (default), "LR", "RL" (right-to-left) or "BT" (bottom-to-top). 3-30 states. To change it, call again with the COMPLETE lists.`
+- direction: "TB" (default), "LR", "RL" (right-to-left) or "BT" (bottom-to-top). 3-30 states. To change it afterwards, call edit_diagram with the diagram id from the result and only the changes.`
 
 export const CLASS_DESCRIPTION = () => `Draw a UML class diagram as a live, editable draw.io diagram (native class boxes with attribute and
 method compartments). Use it for domain models, object-oriented designs, design patterns and the types in a codebase.
@@ -95,7 +95,7 @@ Write title, direction, then ALL classes, then ALL relationships.
 - relationships: {from, to, type, label?}: inherits (from = subclass, to = parent), implements (from = class, to =
   interface), composition / aggregation (from = the whole, to = the part), association (label = multiplicity such as
   "1..*"), dependency (from uses to). Parents are placed above their children automatically.
-- Up to 80 classes. To change it, call again with the COMPLETE lists.`
+- Up to 80 classes. To change it afterwards, call edit_diagram with the diagram id from the result and only the changes.`
 
 export const ER_DESCRIPTION = () => `Draw an entity relationship (ER) / database schema diagram as a live, editable draw.io diagram: tables
 with their columns, primary and foreign keys, and crow's-foot relationships. Use it for database designs, data models
@@ -105,7 +105,7 @@ Write title, direction, then ALL entities, then ALL relationships.
 - entities: {id, name, fields}. fields: {name, type, pk?, fk?} or strings like "PK id: uuid". Key columns first.
 - relationships: {from, to, cardinality, label?} with cardinality one-to-one, one-to-many (from = the "one" side, e.g.
   customers -> orders), many-to-one or many-to-many. The "one" side is placed above the "many" side.
-- Up to 80 entities. To change it, call again with the COMPLETE lists.`
+- Up to 80 entities. To change it afterwards, call edit_diagram with the diagram id from the result and only the changes.`
 
 export const GENERAL_DESCRIPTION = () => `Draw ANY other connected diagram as a live, editable draw.io diagram: ML / neural-network
 architectures (e.g. a Transformer), system context diagrams, data pipelines in the abstract, concept maps, org charts,
@@ -137,3 +137,18 @@ evidence and you draw the diagram yourself with create_architecture_diagram. Aft
 citing interface numbers (IF-01...) and the evidence.
 repository: "." for the current workspace, a folder name or path inside the workspace, "owner/repo" on ${config.githubHost},
 or an https git URL.`
+
+export const EDIT_DESCRIPTION = () => `Change a diagram drawn earlier in this conversation by sending ONLY what changes. Use it for every follow-up
+change to an existing diagram (add, rename, restyle, regroup, rewire, remove): it takes seconds and a few tokens, and
+everything already drawn keeps its exact place and lines; only the new parts are laid out. Use a create tool only for a
+new or completely redesigned diagram.
+- diagram: the id from the result of the tool that drew it (and of every later edit).
+- add_nodes / add_connections / add_groups: new items with the same fields that tool uses (architecture: nodes,
+  interfaces, containers; flowchart: nodes, connections, lanes; ER: entities, relationships; class: classes,
+  relationships; state: states, transitions; sequence: participants, messages appended at the end). Put a new node in
+  an existing container / group / lane by setting group (or lane) to its id.
+- update: [{id, ...changed fields}] for existing nodes or groups, e.g. [{id:"db", title:"AlloyDB", kind:"alloydb"}].
+- remove: node or group ids (their connections go too), or "from>to" for a single connection.
+- title / subtitle / direction: only when they change.
+Example, adding AlloyDB behind the orders service: {diagram:"3fa9c2d1", add_nodes:[{id:"alloydb", kind:"alloydb",
+title:"AlloyDB", detail:"orders database"}], add_connections:[{from:"orders", to:"alloydb", protocol:"SQL"}]}`
