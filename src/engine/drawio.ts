@@ -204,7 +204,7 @@ export function buildDrawio(scene: Scene, generator = "Drawman") {
         "spacing=12;fontSize=12;", ...scene.legend)
   }
   const xml =
-    `<mxfile host="drawman" type="device"><diagram id="arch" name="Architecture">` +
+    `<mxfile host="drawman" type="device"><diagram id="arch" name="${esc(facts.title)}">` +
     `<mxGraphModel dx="1600" dy="1000" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" ` +
     `fold="1" page="0" pageScale="1" math="0" shadow="0"><root>${cells.join("")}</root></mxGraphModel></diagram></mxfile>`
   return {

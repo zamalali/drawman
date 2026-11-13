@@ -68,6 +68,12 @@ copilot plugin install drawman@drawman
 code --add-mcp '{"name":"drawman","command":"npx","args":["-y","drawman"]}'
 ```
 
+In Windows PowerShell, escape the inner quotes:
+
+```powershell
+code --add-mcp '{\"name\":\"drawman\",\"command\":\"npx\",\"args\":[\"-y\",\"drawman\"]}'
+```
+
 ### Cursor
 
 [**Add to Cursor**](https://cursor.com/en/install-mcp?name=drawman&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsImRyYXdtYW4iXX0=)
@@ -119,8 +125,10 @@ npx -y drawman serve --port 3001   # http://127.0.0.1:3001/mcp, stateless, local
 
 ### Without any agent
 
+`render` turns a JSON graph into a `.drawio` file; [examples/order-platform.json](examples/order-platform.json) is one.
+
 ```bash
-npx -y drawman render examples/order-platform.json -o order.drawio
+npx -y drawman render order-platform.json -o order.drawio
 npx -y drawman analyze ./my-service -o my-service.drawio    # needs DRAWMAN_LLM_* (see .env.example)
 ```
 

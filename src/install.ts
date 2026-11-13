@@ -95,7 +95,7 @@ function updateFile(t: FileTarget, env: Env, install: boolean): Outcome {
     }
   }
   const config = readConfig(t.file)
-  if (!config) return { client: t.client, status: "failed", detail: `${t.file} is not plain JSON; add the server by hand` }
+  if (!config) return { client: t.client, status: "failed", detail: `${t.file} is not plain JSON; ${install ? "add" : "remove"} the server by hand` }
   const servers = { ...((config[t.key] as Record<string, unknown>) ?? {}) }
   if (install) servers[SERVER_NAME] = t.entry ?? stdioEntry(env)
   else if (SERVER_NAME in servers) delete servers[SERVER_NAME]

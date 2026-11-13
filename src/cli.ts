@@ -62,10 +62,15 @@ if (values.help) {
   await startWeb(Number(values.port ?? process.env.PORT ?? 5179))
 } else if (command === "render") {
   if (!target) fail("render needs a JSON file")
+  let input: unknown
+  try {
+    input = JSON.parse(readFileSync(target, "utf8").replace(/^\uFEFF/, ""))
+  } catch (error) {
+    fail((error as NodeJS.ErrnoException).code === "ENOENT" ? `render: ${target} not found` : `render: ${target} is not valid JSON (${(error as Error).message})`)
+  }
   await import("./engine/server-setup.js")
   const { renderDiagram } = await import("./engine/index.js")
-  const input = JSON.parse(readFileSync(target, "utf8").replace(/^\uFEFF/, ""))
-  const { xml, stats, facts } = renderDiagram(input)
+  const { xml, stats, facts } = renderDiagram(input as never)
   const out = values.out ?? `${path.basename(target, path.extname(target))}.drawio`
   writeFileSync(out, xml)
   console.error(`${facts.title}: ${stats.cards} components, ${stats.zones} zones, ${stats.edges} interfaces -> ${out}`)
@@ -77,6 +82,7 @@ if (values.help) {
   await import("./engine/server-setup.js")
   const { renderDiagram } = await import("./engine/index.js")
   const r = await analyzeRepository(target, { ref: values.ref, focus: values.focus, complete: httpCompleter() })
+    .catch((error: Error) => fail(`analyze: ${error.message}`))
   if (r.mode === "handoff") {
     process.stdout.write(r.brief + "\n")
     console.error("\nNo LLM configured (DRAWMAN_LLM_URL/_KEY): printed the evidence instead of a diagram.")
