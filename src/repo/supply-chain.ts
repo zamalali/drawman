@@ -60,16 +60,19 @@ export function enforceSupplyChain(diagram: DiagramInput, signals: Signal[]): { 
   })
   if (kept.length !== interfaces.length) changes.push(`rewired ${interfaces.length - kept.length} release-path interface(s)`)
   const links: InputInterface[] = []
+  // Image wording only when the evidence shows a container build or registry; npm, Maven or zip releases are just published.
+  const images = ["docker_build", ...STAGES[4].kinds].some((k) => proven.has(k))
   for (let k = 1; k < chain.length; k++) {
     const a = chain[k - 1], b = chain[k]
-    const [label, protocol, description] = LINK[`${a.stage}>${b.stage}`] ?? ["hands over", "HTTPS", "Next release stage."]
+    const [label, protocol, description] = (images || b.stage < 2 ? LINK[`${a.stage}>${b.stage}`] : undefined)
+      ?? (b.stage >= 2 ? ["publish", "HTTPS", "The workflow publishes the release artifact."] : ["hands over", "HTTPS", "Next release stage."])
     links.push({ from: a.id, to: b.id, label, protocol, description })
   }
 
   if (last.stage >= 2) {
     const targets = runtimeNodes.filter((n) => proven.has(kindOf(n)))
     for (const t of (targets.length ? targets : runtimeNodes.slice(0, 1)).slice(0, 3)) {
-      links.push({ from: last.id, to: slug(t.id), label: "deploy", protocol: "deploy", description: `${String(t.title ?? t.id)} runs the released image.` })
+      links.push({ from: last.id, to: slug(t.id), label: "deploy", protocol: "deploy", description: `${String(t.title ?? t.id)} runs the released ${images ? "image" : "build"}.` })
     }
   }
   return { diagram: { ...diagram, nodes, interfaces: [...links, ...kept] }, changes }

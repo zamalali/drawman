@@ -70,6 +70,19 @@ test("release path: nothing is invented without evidence", () => {
   assert.equal((diagram.nodes as unknown[]).length, 2)
 })
 
+test("release path: without container evidence the chain is published, never 'image'", () => {
+  const model = {
+    title: "Package", nodes: [
+      { id: "repo", kind: "github_repo", title: "Repo" }, { id: "ci", kind: "github_actions", title: "CI" },
+      { id: "npm", kind: "jfrog_artifactory", title: "Package registry" }, { id: "app", kind: "container_service", title: "App" },
+    ], interfaces: [{ from: "repo", to: "ci" }, { from: "ci", to: "npm" }, { from: "npm", to: "app" }],
+  }
+  const { diagram } = enforceSupplyChain(model, [sig("github_repo"), sig("github_actions")])
+  const text = JSON.stringify(diagram.interfaces)
+  assert.ok(!/image/i.test(text), `image wording without container evidence: ${text}`)
+  assert.match(text, /"label":"publish"/)
+})
+
 function fixture(files: Record<string, string>) {
   const dir = mkdtempSync(path.join(tmpdir(), "drawio-fixture-"))
   for (const [rel, text] of Object.entries(files)) {

@@ -23,6 +23,10 @@ const SKIP_DIRS = new Set([".git", "node_modules", "vendor", "dist", "build", "_
   ".next", "coverage", ".terraform", ".idea", ".vscode", "out", "bin", "obj", ".gradle", "mta_archives"])
 const TEXT_EXT = /\.(ya?ml|json|tf|tfvars|bicep|cds|ts|tsx|js|mjs|cjs|py|go|java|kt|cs|xml|toml|properties|env|example|md|sh|ps1|sql|hdbtable|hdbview|abap)$/i
 const MAX_FILES = 6000
+// Test code and fixtures quote deploy commands and cloud SDK calls as sample data; they are not the repository's architecture.
+// Infrastructure in folders named after an environment (envs/test/main.tf) is still scanned.
+const TEST_CODE = /(^|\/)(__tests__|__mocks__|fixtures?|testdata)\/|\.(test|spec)\.[cm]?[jt]sx?$|_test\.(go|py)$|(^|\/)test_[^/]*\.py$|(^|\/)tests?\/.*\.([cm]?[jt]sx?|py|go|java|kt|cs)$/i
+const CDK_IMPORT = /(?:from|import)\s+['"](?:aws-cdk-lib|@aws-cdk\/)|require\(\s*['"](?:aws-cdk-lib|@aws-cdk\/)|^\s*(?:from|import)\s+aws_cdk\b/m
 
 function walk(root: string): string[] {
   const out: string[] = []
@@ -67,6 +71,7 @@ export function scanRepository(root: string): Scan {
 
   if (files.some((f) => f.startsWith(".github/workflows/"))) add("github_repo", "repository", ".github/", "GitHub repository with Actions workflows")
   for (const f of files) {
+    if (TEST_CODE.test(f)) continue
     const base = path.basename(f).toLowerCase()
     const lower = f.toLowerCase()
     if (lower.startsWith(".github/workflows/") && /\.ya?ml$/.test(lower)) {
@@ -87,9 +92,12 @@ export function scanRepository(root: string): Scan {
     if (base === "serverless.yml" || base === "serverless.yaml") {
       if (/provider:\s*\n?\s*name:\s*aws|provider:\s*aws/m.test(read(f))) add("aws_lambda", "serverless", f, "Serverless Framework on AWS")
     }
-    if (/\.(ya?ml|json|template|ts|py|js)$/.test(lower) && /AWS::|aws-cdk-lib|@aws-cdk\/|aws_cdk/.test(read(f))) {
+    const template = /\.(ya?ml|json|template)$/.test(lower) && /AWS::/.test(read(f))
+    // CDK only counts in code that imports it; code that merely mentions AWS:: types (scanners, docs) is not an AWS app.
+    const cdk = /\.(ts|py|js)$/.test(lower) && CDK_IMPORT.test(read(f))
+    if (template || cdk) {
       lines(f).forEach((l, i) => { for (const [re, k] of CFN) if (re.test(l)) { add(k, /AWS::/.test(l) ? "cloudformation" : "cdk", `${f}:${i + 1}`, l); break } })
-      add("aws_cloudformation", "cloudformation", f, /aws-cdk-lib|@aws-cdk|aws_cdk/.test(read(f)) ? "AWS CDK app" : "CloudFormation template")
+      add("aws_cloudformation", "cloudformation", f, cdk ? "AWS CDK app" : "CloudFormation template")
     }
     if (/\.tf$/.test(lower)) {
       if (!signals.has("terraform")) add("terraform", "terraform", f, "Terraform configuration")

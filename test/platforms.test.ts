@@ -20,6 +20,27 @@ const withScan = <T>(files: Record<string, string>, fn: (scan: ReturnType<typeof
   try { return fn(scanRepository(dir)) } finally { rmSync(dir, { recursive: true, force: true }) }
 }
 
+test("scanner: test code and fixtures are not evidence, environment folders named test still are", () => withScan({
+  "test/mcp.test.ts": "const wf = 'run: gcloud run deploy api --image europe-docker.pkg.dev/p/r/x'\n",
+  "src/__tests__/aws.spec.ts": "import { S3Client } from '@aws-sdk/client-s3'\nconst t = 'AWS::DynamoDB::Table'\n",
+  "tests/fixtures/infra/main.tf": "resource \"google_sql_database_instance\" \"db\" {}\n",
+  "envs/test/main.tf": "resource \"google_cloud_run_v2_service\" \"api\" {}\n",
+}, (scan) => {
+  const k = new Set(scan.signals.map((s) => s.kind))
+  for (const unwanted of ["artifact_registry", "aws_s3", "aws_dynamodb", "cloud_sql"]) assert.ok(!k.has(unwanted), `${unwanted} came from test code: ${[...k].join(", ")}`)
+  assert.ok(k.has("cloud_run"), `envs/test/main.tf must still be scanned: ${[...k].join(", ")}`)
+  assert.ok(!scan.platforms.includes("aws"))
+}))
+
+test("scanner: source that only mentions AWS:: types (a scanner, docs) is not an AWS app; CDK code that imports it is", () => withScan({
+  "src/rules.ts": "export const CFN = [[/AWS::Lambda::Function/, 'aws_lambda'], [/AWS::DynamoDB::Table/, 'aws_dynamodb']]\n",
+  "infra/stack.py": "from aws_cdk import aws_sqs as sqs\nsqs.Queue(self, 'q')\n",
+}, (scan) => {
+  const k = new Set(scan.signals.map((s) => s.kind))
+  assert.ok(!k.has("aws_lambda") && !k.has("aws_dynamodb"), `pattern text became evidence: ${[...k].join(", ")}`)
+  assert.ok(k.has("aws_sqs"), `CDK construct missing: ${[...k].join(", ")}`)
+}))
+
 test("scanner: AWS serverless app (SAM / CloudFormation, CDK, SDKs, workflow)", () => withScan({
   "template.yaml": "Resources:\n  Api:\n    Type: AWS::Serverless::Api\n  Fn:\n    Type: AWS::Serverless::Function\n  Table:\n    Type: AWS::DynamoDB::Table\n  Bucket:\n    Type: AWS::S3::Bucket\n  Pool:\n    Type: AWS::Cognito::UserPool\n",
   "cdk/lib/app-stack.ts": "import * as sqs from 'aws-cdk-lib/aws-sqs'\nnew sqs.Queue(this, 'q')\n",
