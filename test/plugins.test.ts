@@ -15,6 +15,8 @@ test("every plugin manifest, marketplace and the launcher pin the package versio
   assert.match(read("plugins/drawman/launch.mjs"), new RegExp(`const VERSION = "${version.replace(/\./g, "\\.")}"`), "launcher")
   assert.match(read("plugins/drawman/launch.mjs"), /`drawman@\^\$\{VERSION\}`/, "launcher takes later patches, so fixes reach plugin users")
   assert.match(read("src/version.ts"), new RegExp(`"${version.replace(/\./g, "\\.")}"`), "src/version.ts")
+  assert.equal(read("CHANGELOG.md").match(/^## \[(\d+\.\d+\.\d+)\]/m)?.[1], version, "CHANGELOG.md starts with this version")
+  assert.ok((json("package.json").files as string[]).includes("CHANGELOG.md"), "the changelog ships in the npm package")
 })
 
 test("plugin MCP configs start the launcher with the right root variable per client", () => {

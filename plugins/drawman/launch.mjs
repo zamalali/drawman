@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process"
 
-const VERSION = "0.2.0"
+const VERSION = "0.2.1"
 // A caret range: npx fetches every later 0.2.x patch on the next start, so fixes reach plugin users without a plugin update.
 const pkg = process.env.DRAWMAN_PACKAGE || `drawman@^${VERSION}`
 const win = process.platform === "win32"
