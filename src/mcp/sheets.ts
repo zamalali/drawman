@@ -5,7 +5,8 @@ import { INPUT_KEYS, diagramKind, type DiagramInput } from "../engine/index.js"
 import type { Memo } from "./output.js"
 
 type Item = Record<string, unknown>
-// view: the server's layout of the latest drawing (positions, routes), so the live view can show it while an edit streams.
+// view: the server's final drawing of the latest version (draw.io XML, layout, positions, routes), so the live view can
+// show it while an edit streams, and fetch it when the tool result itself left it out.
 interface Sheet { tool: string; args: Item; view: Item; memo?: Memo }
 const sheets = new Map<string, Sheet>()
 const LIMIT = 50

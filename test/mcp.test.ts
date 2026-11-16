@@ -74,6 +74,39 @@ test("a terminal host without MCP Apps gets a .drawio file in the workspace and 
   assert.equal(sc.xml, undefined, "the 30 KB XML is not sent to hosts that cannot render it")
 })
 
+test("a view shown by a host taken for a terminal (Copilot CLI in VS Code) fetches the saved drawing to show and export it", async () => {
+  const [a, b] = InMemoryTransport.createLinkedPair()
+  await createServer().connect(b)
+  const client = new Client({ name: "copilot-cli", version: "1.0.110" }, { capabilities: UI as never })
+  await client.connect(a)
+  const r = (await client.callTool({ name: "create_architecture_diagram", arguments: sample })) as CallToolResult
+  const sc = r.structuredContent as { file: string; sheet: string; xml?: string; layout?: unknown }
+  const wire = JSON.parse(JSON.stringify(r.structuredContent)) as Record<string, unknown>
+  assert.equal(wire.xml, undefined, "the model's context stays small")
+  assert.match(sc.sheet, /^[0-9a-f]{8}$/)
+  const shown = (await client.callTool({ name: "show_diagram", arguments: { diagram: sc.sheet } })) as CallToolResult
+  const view = shown.structuredContent as { xml: string; diagram: unknown }
+  assert.equal(view.xml, readFileSync(sc.file, "utf8"), "the view exports exactly the file saved in the project")
+  assert.ok(view.diagram)
+  const grouped = (await client.callTool({ name: "create_diagram", arguments: { title: "Grouped", groups: [{ id: "g", title: "G" }], nodes: [{ id: "a", title: "A", group: "g" }, { id: "b", title: "B", group: "g" }], interfaces: [{ from: "a", to: "b" }] } })) as CallToolResult
+  const gsc = grouped.structuredContent as { sheet: string; layout?: unknown }
+  assert.equal(gsc.layout, undefined)
+  const gview = (await client.callTool({ name: "show_diagram", arguments: { diagram: gsc.sheet } })).structuredContent as { layout?: unknown }
+  assert.ok(gview.layout, "grouped diagrams come with the server's final layout, as in a host that shows the view")
+  await client.callTool({ name: "remember_layout", arguments: { diagram: sc.sheet, positions: { lb: [400, 300] } } })
+  const moved = (await client.callTool({ name: "show_diagram", arguments: { diagram: sc.sheet } })) as CallToolResult
+  assert.equal((moved.structuredContent as { xml?: string }).xml, undefined, "after a drag the stored file no longer matches the view")
+})
+
+test("hosts with the live view still get the whole drawing in the result, unchanged", async () => {
+  const client = await connect(UI)
+  const r = (await client.callTool({ name: "create_architecture_diagram", arguments: sample })) as CallToolResult
+  const wire = JSON.parse(JSON.stringify(r.structuredContent)) as Record<string, unknown>
+  assert.deepEqual(Object.keys(wire).sort(), ["sheet", "stats", "title", "xml"])
+  const shown = (await client.callTool({ name: "show_diagram", arguments: { diagram: String(wire.sheet) } })) as CallToolResult
+  assert.equal((shown.structuredContent as { xml: string }).xml, wire.xml)
+})
+
 test("hosts without the live view get a short link to a page that opens the exact diagram in the draw.io editor", async () => {
   const client = await connect({})
   const r = (await client.callTool({ name: "create_architecture_diagram", arguments: sample })) as CallToolResult

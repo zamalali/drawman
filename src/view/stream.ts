@@ -121,8 +121,7 @@ function finish(stats?: { cards: number; zones: number; edges: number }) {
   // The server's routes were for revealing the result; from here on drags re-route from what is on screen.
   kept = null
   world.classList.add("editable")
-  ui.download.disabled = !state.xml
-  ui.open.disabled = !state.xml
+  ui.download.disabled = ui.open.disabled = !(state.xml || state.current?.cards.length)
   ui.flow.disabled = false
   ui.flow.classList.toggle("on", state.flowOn)
   setStatus("done", state.current?.facts.flow || state.current?.seq
@@ -167,6 +166,16 @@ function useServerLayout(sc: Shown, replace: boolean) {
   kept = sc.routes ? new Map(Object.entries(sc.routes)) : null
   if (sc.layout) state.layout = sc.layout
 }
+// The server's final drawing of a diagram it keeps (show_diagram is app-only, so this costs the model nothing). Gives up
+// after a few seconds: the view then exports what it shows (see view.ts).
+async function fetchDrawing(id: string): Promise<Pick<Shown, "layout" | "positions" | "routes"> & { xml?: string }> {
+  const call = app.callServerTool({ name: "show_diagram", arguments: { diagram: id } })
+  const r = await Promise.race([call, new Promise<null>((done) => setTimeout(() => done(null), 4000))]).catch(() => null)
+  const v = r && !r.isError ? r.structuredContent as (Shown & { xml?: unknown }) | undefined : undefined
+  if (typeof v?.xml !== "string" || !v.xml) return {}
+  return { xml: v.xml, ...(v.layout ? { layout: v.layout } : {}), ...(v.positions ? { positions: v.positions } : {}), ...(v.routes ? { routes: v.routes } : {}) }
+}
+
 app.ontoolinputpartial = ({ arguments: args }) => {
   if (!args || inputFinal || "repository" in args) return
   if (isEdit(args)) awaitEdit(args)
@@ -178,12 +187,16 @@ app.ontoolinput = ({ arguments: args }) => {
   else if (isEdit(args)) awaitEdit(args)
   else receive(args, true)
 }
-app.ontoolresult = (result) => {
+app.ontoolresult = async (result) => {
   if (result.isError) {
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
     return
   }
-  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]>; edit?: { nodes: number; edges: number }; sheet?: string } | undefined
+  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]>; edit?: { nodes: number; edges: number }; sheet?: string; file?: string } | undefined
+  // Hosts the server takes for a terminal (e.g. a Copilot CLI session shown in VS Code) get a result without the drawing,
+  // which the server saved to the project instead. Fetch it, so the canvas shows the same final layout and can export it.
+  if (sc && !sc.xml && sc.sheet) Object.assign(sc, await fetchDrawing(sc.sheet))
+  if (sc?.file) tick(`💾 Saved <b>${escHtml(sc.file.split(/[\\/]/).pop() ?? sc.file)}</b> in the project`)
   state.xml = state.serverXml = sc?.xml ?? ""
   resultStats = sc?.stats
   if (sc?.sheet) state.sheet = sc.sheet

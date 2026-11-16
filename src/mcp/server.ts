@@ -12,7 +12,7 @@ import { httpCompleter, samplingCompleter } from "../llm.js"
 import { analyzeRepository, applyRecentEvidence, type Analysis } from "../repo/analyze.js"
 import { VERSION } from "../version.js"
 import { ANALYZE_DESCRIPTION, CLASS_DESCRIPTION, ER_DESCRIPTION, FLOWCHART_DESCRIPTION, GENERAL_DESCRIPTION, SEQUENCE_DESCRIPTION, STATE_DESCRIPTION, TOOL_DESCRIPTION, EDIT_DESCRIPTION } from "./descriptions.js"
-import { adjustLayout, failure, layoutContext, summarise, type LayoutContext, type Memo } from "./output.js"
+import { VIEW_DATA, adjustLayout, failure, layoutContext, summarise, type LayoutContext, type Memo, type ViewData } from "./output.js"
 import { applyChange, findSheet, keepSheet, type Change } from "./sheets.js"
 
 export * from "./descriptions.js"
@@ -86,11 +86,15 @@ export function createServer(opts: ServerOptions = {}) {
     return { result, memo: ctx.memo }
   }
   const remembered = (result: Drawn, tool: string, input: Record<string, unknown>, memo: Memo | undefined, id?: string): Drawn => {
-    const sc = result.structuredContent
-    if (result.isError || !sc?.stats) return result
+    if (!result.structuredContent) return result
+    // The full drawing rides along under a symbol key; the SDK only accepts string keys, so it never leaves the server.
+    const sc = { ...result.structuredContent }
+    const full = (sc as Record<symbol, unknown>)[VIEW_DATA] as ViewData | undefined
+    delete (sc as Record<symbol, unknown>)[VIEW_DATA]
+    if (result.isError || !sc.stats) return { ...result, structuredContent: sc }
     const { save: _s, workspace: _w, repository: _r, ...args } = (sc.diagram ?? input) as Record<string, unknown>
-    const view = Object.fromEntries(["layout", "positions", "routes"].filter((k) => sc[k] !== undefined).map((k) => [k, sc[k]]))
-    const key = keepSheet(tool, args, id, view, memo)
+    const view = full ?? Object.fromEntries(["xml", "layout", "positions", "routes"].filter((k) => sc[k] !== undefined).map((k) => [k, sc[k]]))
+    const key = keepSheet(tool, args, id, { ...view }, memo)
     const [first, ...rest] = result.content
     return {
       ...result,
@@ -448,15 +452,20 @@ export function createServer(opts: ServerOptions = {}) {
       // The view shown during the next edit starts from the same arrangement; its lines are routed afresh.
       delete sheet.view.routes
       if (!positions) delete sheet.view.positions
-      else sheet.view.positions = { ...(sheet.view.positions as object | undefined), ...positions }
+      else {
+        sheet.view.positions = { ...(sheet.view.positions as object | undefined), ...positions }
+        // The stored draw.io file no longer matches what the user arranged; the view exports its own from then on.
+        delete sheet.view.xml
+      }
     }
     return { content: [{ type: "text" as const, text: ok ? "Layout remembered." : "Nothing to remember." }] }
   })
 
-  // Called by the view (never by the model) as an edit starts streaming: the diagram as it is now, shown at once.
+  // Called by the view (never by the model): the diagram as it is now, shown at once as an edit starts streaming, and the
+  // final drawing (XML, layout) when a tool result left it out because the server took the host for a terminal.
   registerAppTool(server, "show_diagram", {
     title: "Show diagram",
-    description: "Returns a diagram drawn earlier, for the live view to show while an edit is applied.",
+    description: "Returns a diagram drawn earlier, for the live view to show while an edit is applied or to export.",
     inputSchema: { diagram: z.string().max(40) },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: { ui: { resourceUri: RESOURCE_URI, visibility: ["app"] as ("model" | "app")[] } },

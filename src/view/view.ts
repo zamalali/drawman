@@ -1,6 +1,6 @@
 // Entry point of the MCP App: wires the toolbar and connects to the host.
 import "./styles.css"
-import { ICONS } from "../engine/index.js"
+import { ICONS, buildDrawio } from "../engine/index.js"
 import { escHtml, setStatus, tick, ui } from "./dom.js"
 import { fitTo } from "./camera.js"
 import { app, applyContext } from "./host.js"
@@ -25,22 +25,26 @@ ui.fullscreen.onclick = async () => {
   } catch { /* host refused */ }
 }
 const fileName = () => (state.current?.facts.title || "architecture").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".drawio"
+// The server's draw.io file (or, after a drag, the view's own); if neither arrived, the diagram exactly as it is shown.
+const exportXml = () => state.xml || (state.current?.cards.length ? buildDrawio(state.current).xml : "")
 ui.download.onclick = async () => {
-  if (!state.xml) return
+  const xml = exportXml()
+  if (!xml) return
   try {
-    const res = await app.downloadFile({ contents: [{ type: "resource", resource: { uri: `file:///${fileName()}`, mimeType: "application/vnd.jgraph.mxfile", text: state.xml } }] })
+    const res = await app.downloadFile({ contents: [{ type: "resource", resource: { uri: `file:///${fileName()}`, mimeType: "application/vnd.jgraph.mxfile", text: xml } }] })
     if (res.isError) throw new Error("denied")
     tick(`⬇ <b>${escHtml(fileName())}</b> downloaded`)
   } catch {
     const a = document.createElement("a")
-    a.href = URL.createObjectURL(new Blob([state.xml], { type: "application/xml" }))
+    a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" }))
     a.download = fileName()
     a.click()
   }
 }
 ui.open.onclick = async () => {
-  if (!state.xml) return
-  const bytes = new TextEncoder().encode(encodeURIComponent(state.xml))
+  const xml = exportXml()
+  if (!xml) return
+  const bytes = new TextEncoder().encode(encodeURIComponent(xml))
   const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))
   const buf = new Uint8Array(await new Response(stream).arrayBuffer())
   let bin = ""

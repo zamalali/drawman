@@ -117,6 +117,13 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
   const pinned = prev?.positions
   const { facts, xml, stats, scene } = renderDiagram(args, false, pinned, prev?.keep)
   remember(ctx, facts, scene)
+  // What the live view needs to show and export the final diagram. Results for hosts without the view leave it out to
+  // save tokens; it stays with the drawing (see VIEW_DATA) so a view that is shown anyway can still fetch it.
+  const viewData: ViewData = {
+    xml,
+    ...(scene.placed ? { layout: scene.placed } : {}),
+    ...(pinned ? { positions: placedAt(scene), routes: Object.fromEntries(scene.edges.map((e) => [e.id, e.points])) } : {}),
+  }
   const frames = scene.frames.map((f) => f.title).join(", ")
   const zones = scene.zones.map((z) => `${z.title} (${scene.cards.filter((c) => c.zoneId === z.id).length})`).join(", ")
   const titles = new Map(facts.nodes.map((n) => [n.id, n.title]))
@@ -147,9 +154,17 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
           `${frames ? ` across ${frames}` : ""} [${zones}], ${stats.edges} routed interfaces [${ifs}]. ` +
           `draw.io file: ${(stats.bytes / 1024).toFixed(0)} KB. ${notes}`).trim(),
     }],
-    structuredContent: { title: facts.title, stats, ...(withXml || !file ? { xml } : {}), ...(file ? { file } : {}), ...(open ? { open } : {}), ...(withXml && scene.placed ? { layout: scene.placed } : {}), ...(withXml && pinned ? { positions: placedAt(scene), routes: Object.fromEntries(scene.edges.map((e) => [e.id, e.points])) } : {}) } as Record<string, unknown>,
+    structuredContent: {
+      title: facts.title, stats, ...(file ? { file } : {}), ...(open ? { open } : {}),
+      ...(withXml ? viewData : file ? {} : { xml }),
+      [VIEW_DATA]: viewData,
+    } as Record<string, unknown>,
   }
 }
+
+// Symbol-keyed, so object spreads carry it to the server's diagram store but it is never serialised into the result.
+export const VIEW_DATA: unique symbol = Symbol("drawman.viewData")
+export type ViewData = { xml: string; layout?: unknown; positions?: Positions; routes?: Record<string, Pt[]> }
 
 export const failure = (prefix: string, error: unknown) =>
   ({ isError: true, content: [{ type: "text" as const, text: `${prefix}: ${(error as Error).message}` }] })
