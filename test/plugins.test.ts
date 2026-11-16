@@ -13,6 +13,7 @@ test("every plugin manifest, marketplace and the launcher pin the package versio
   assert.equal(json(".github/plugin/marketplace.json").metadata.version, version, "Copilot marketplace metadata")
   assert.equal(json("vscode/package.json").version, version, "VS Code extension")
   assert.match(read("plugins/drawman/launch.mjs"), new RegExp(`const VERSION = "${version.replace(/\./g, "\\.")}"`), "launcher")
+  assert.match(read("plugins/drawman/launch.mjs"), /`drawman@\^\$\{VERSION\}`/, "launcher takes later patches, so fixes reach plugin users")
   assert.match(read("src/version.ts"), new RegExp(`"${version.replace(/\./g, "\\.")}"`), "src/version.ts")
 })
 

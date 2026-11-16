@@ -117,6 +117,12 @@ drag-to-edit, Download and Open in draw.io. Terminal agents (Claude Code, Copilo
 editor. The diagram travels in the URL fragment, so it is never uploaded anywhere. More in
 [docs/integrations.md](docs/integrations.md).
 
+### Updating
+
+Nothing to reinstall: `npx -y drawman` starts the latest release, and the plugins start the latest 0.2.x. Restart the
+server to pick up a new version (VS Code: **MCP: List Servers** → drawman → **Restart**, or reload the window; terminal
+agents: start a new session).
+
 ### Remote / shared (Streamable HTTP)
 
 ```bash
