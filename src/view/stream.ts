@@ -14,6 +14,8 @@ let latest: Record<string, unknown> | null = null
 let inputFinal = false
 let resultStats: Stats | undefined
 let resultReady = false
+// True once partial input arrived, i.e. the user is watching the model write this diagram.
+let streamed = false
 let shownNodes = 0
 let shownEdges = 0
 let beat = 0
@@ -178,6 +180,7 @@ async function fetchDrawing(id: string): Promise<Pick<Shown, "layout" | "positio
 
 app.ontoolinputpartial = ({ arguments: args }) => {
   if (!args || inputFinal || "repository" in args) return
+  streamed = true
   if (isEdit(args)) awaitEdit(args)
   else receive(args, false)
 }
@@ -226,12 +229,16 @@ app.ontoolresult = async (result) => {
   }
   resultReady = true
   if (!latest) return
+  // Streamed live: keep revealing at the drawing pace. Never streamed (a View restored after a reload, or a host that
+  // sends no partial input): the diagram is final, so show it whole instead of replaying it.
+  if (streamed) {
+    if (!beat) step()
+    return
+  }
   revealAll()
   if (!state.done) finish(resultStats)
 }
 
-// A finished call is final, so the whole diagram shows at once. A View restored after a reload gets the complete input
-// and the result together and must not replay the drawing; live streaming has already drawn almost everything by now.
 function revealAll() {
   if (beat) window.clearTimeout(beat)
   beat = 0
