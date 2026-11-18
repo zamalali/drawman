@@ -3,6 +3,13 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-11-18
+
+### Fixed
+
+- Reloading a chat no longer replays a finished diagram step by step: once the result is in, the view shows the
+  whole diagram at once. Live drawing while the model writes is unchanged.
+
 ## [0.2.1] - 2026-11-16
 
 ### Fixed
