@@ -225,5 +225,18 @@ app.ontoolresult = async (result) => {
     return
   }
   resultReady = true
-  if (!beat) step()
+  if (!latest) return
+  revealAll()
+  if (!state.done) finish(resultStats)
+}
+
+// A finished call is final, so the whole diagram shows at once. A View restored after a reload gets the complete input
+// and the result together and must not replay the drawing; live streaming has already drawn almost everything by now.
+function revealAll() {
+  if (beat) window.clearTimeout(beat)
+  beat = 0
+  const a = available(latest!)
+  shownNodes = Math.max(shownNodes, a.nodes)
+  shownEdges = Math.max(shownEdges, a.edges)
+  draw()
 }
