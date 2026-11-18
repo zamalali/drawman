@@ -3,6 +3,14 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] - 2026-11-18
+
+### Fixed
+
+- A diagram drawn live jumped to its finished state as soon as the model finished (since 0.2.2) instead of
+  finishing its drawing. It draws to the end again; only a view that never saw the streaming, such as after a
+  reload, shows the finished diagram at once.
+
 ## [0.2.2] - 2026-11-18
 
 ### Fixed
