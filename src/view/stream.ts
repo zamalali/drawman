@@ -192,6 +192,10 @@ app.ontoolinput = ({ arguments: args }) => {
 }
 app.ontoolresult = async (result) => {
   if (result.isError) {
+    // A pending reveal beat, or an edit's diagram fetch still in flight, would redraw and set the status back to "building".
+    if (beat) window.clearTimeout(beat)
+    beat = 0
+    resultReady = true
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
     return
   }
@@ -211,6 +215,7 @@ app.ontoolresult = async (result) => {
     shownNodes = sc.edit.nodes
     shownEdges = sc.edit.edges
     quietly(() => receive(sc.diagram!, true))
+    if (!streamed) return showWhole()
     if (!beat) step()
     return
   }
@@ -225,18 +230,28 @@ app.ontoolresult = async (result) => {
   if (sc?.diagram && (!latest || sc.analysis)) {
     resultReady = true
     receive(sc.diagram, true)
+    if (!streamed && !sc.analysis) showWhole()
     return
   }
   resultReady = true
   if (!latest) return
-  // Streamed live: keep revealing at the drawing pace. Never streamed (a View restored after a reload, or a host that
-  // sends no partial input): the diagram is final, so show it whole instead of replaying it.
+  // Streamed live: keep revealing at the drawing pace. Never streamed (a View restored after a reload, a fullscreen
+  // copy, or a host that sends no partial input): the diagram is final, so show it whole instead of replaying it.
   if (streamed) {
     if (!beat) step()
     return
   }
+  showWhole()
+}
+
+// The whole diagram at once and still: no entrance animations and no camera glide. The classes are removed in the same
+// task that added them, so the browser never starts those animations.
+function showWhole() {
   revealAll()
+  for (const node of Array.from(document.querySelectorAll(".enter"))) node.classList.remove("enter")
+  for (const path of Array.from(layers.edges.querySelectorAll<SVGPathElement>("path"))) path.style.strokeDasharray = path.dataset.dash ?? ""
   if (!state.done) finish(resultStats)
+  if (!state.userMoved) fitTo(state.current, true)
 }
 
 function revealAll() {

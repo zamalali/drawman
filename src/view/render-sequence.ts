@@ -63,7 +63,8 @@ export function drawSequence(scene: Scene, added: Card[], addedEdges: Edge[]) {
     const path = g.querySelector("path")!
     path.setAttribute("d", `M${e.points.map((p) => p.join(",")).join(" L")}`)
     path.setAttribute("marker-end", e.rel === "sync" ? "url(#arrow)" : "url(#m-open)")
-    path.style.strokeDasharray = e.rel === "return" || e.rel === "create" ? "5 4" : ""
+    path.dataset.dash = e.rel === "return" || e.rel === "create" ? "5 4" : ""
+    path.style.strokeDasharray = path.dataset.dash
     if (!seenEdges.has(e.index)) { seenEdges.add(e.index); g.classList.add("enter"); addedEdges.push(e) }
     const lg = keyed(layers.labels, key, () => { const lg = el("g", { class: "elabel slabel enter" }); el("text", {}, lg); return lg })
     lg.dataset.from = e.from
