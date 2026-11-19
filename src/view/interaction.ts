@@ -81,6 +81,7 @@ function moveCard(e: PointerEvent) {
   if (!d.moved) {
     d.moved = true
     state.userMoved = true
+    state.cardsMoved = true
     world.classList.add("moving")
     layers.flow.replaceChildren()
     hideInspector()
@@ -133,9 +134,10 @@ const moved = () => Object.fromEntries(Object.entries(state.positions).filter(([
 ui.reset.onclick = () => {
   state.positions = {}
   state.pinned = {}
+  state.userMoved = false
+  state.cardsMoved = false
   draw()
   commitEdit("↺ <b>Automatic layout</b> restored")
-  state.userMoved = false
   fitTo(state.current)
 }
 

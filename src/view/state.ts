@@ -7,6 +7,8 @@ export const state = {
   cam: { x: 0, y: 0, w: 1400, h: 800 } as Cam,
   target: { x: 0, y: 0, w: 1400, h: 800 } as Cam,
   userMoved: false,
+  // A card or zone was dragged by hand (not just zoomed or panned): every card on screen then keeps its place.
+  cardsMoved: false,
   positions: {} as Positions,
   serverXml: "",
   current: null as Scene | null,

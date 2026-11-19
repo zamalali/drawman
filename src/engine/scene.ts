@@ -142,6 +142,29 @@ export type Positions = Record<string, Pt>
 const hit = (a: Box, b: Box, gap = 0) =>
   a[0] < b[0] + b[2] + gap && b[0] < a[0] + a[2] + gap && a[1] < b[1] + b[3] + gap && b[1] < a[1] + a[3] + gap
 
+// Placed cards keep their places, but one that grew (an edit added fields to a table) must not cover the cards below it:
+// those slide down, top to bottom, by just enough. Returns how far each card slid.
+function makeRoomForGrown(positions: Positions, out: Layout) {
+  const slid = new Map<string, number>()
+  const ids = Object.keys(positions).filter((k) => out.cards.has(k))
+  for (let pass = 0; pass < ids.length; pass++) {
+    ids.sort((a, b) => out.cards.get(a)![1] - out.cards.get(b)![1])
+    let moved = false
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = out.cards.get(ids[i])!, b = out.cards.get(ids[j])!
+        if (!hit(a, b)) continue
+        const dy = Math.ceil((a[1] + a[3] + CARD_GAP - b[1]) / 10) * 10
+        out.cards.set(ids[j], [b[0], b[1] + dy, b[2], b[3]])
+        slid.set(ids[j], (slid.get(ids[j]) ?? 0) + dy)
+        moved = true
+      }
+    }
+    if (!moved) break
+  }
+  return slid
+}
+
 // Cards without a given position (new nodes in an edit) join their zone right below its lowest member. When that space
 // is taken, everything below the zone in the same column slides down together to make room, the way you would do it by
 // hand; nothing else moves. Cards without a zone take the nearest free spot. Returns how far each existing card slid.
@@ -219,7 +242,9 @@ function applyPositions(positions: Positions, out: Layout) {
     const box = cards.get(key)
     if (box) cards.set(key, [Math.max(20, x), Math.max(120, y), box[2], box[3]])
   }
+  const grown = makeRoomForGrown(positions, out)
   const slid = settleNewCards(positions, out, zoneOfNode)
+  for (const [id, dy] of grown) slid.set(id, (slid.get(id) ?? 0) + dy)
   const grow = (box: Box, [x0, y0, x1, y1]: [number, number, number, number]): Box => {
     const nx = Math.min(box[0], x0), ny = Math.min(box[1], y0)
     return [nx, ny, Math.max(box[0] + box[2], x1) - nx, Math.max(box[1] + box[3], y1) - ny]
@@ -330,8 +355,13 @@ export function buildScene(facts: Facts, positions?: Positions, reroute?: Rerout
   // make room for a new card, then the route slides with them) and no card is in the way.
   const shift = (id: string) => slid.get(id) ?? 0
   const before = (e: Interface): Pt[] => reroute!.previous.get(e.id)!.map(([x, y]) => [x, y + shift(e.from)])
+  // A card that grew (an edit added fields) moved its sides: a route that no longer starts and ends on them is redrawn.
+  const onBorder = ([px, py]: Pt, [x, y, w, h]: Box) =>
+    ((Math.abs(px - x) <= 1 || Math.abs(px - x - w) <= 1) && py >= y - 1 && py <= y + h + 1) ||
+    ((Math.abs(py - y) <= 1 || Math.abs(py - y - h) <= 1) && px >= x - 1 && px <= x + w + 1)
+  const attached = (pts: Pt[], e: Interface) => onBorder(pts[0], cards.get(e.from)!) && onBorder(pts[pts.length - 1], cards.get(e.to)!)
   const keep = reroute ? edgesIn.filter((e) => !reroute.moved.has(e.from) && !reroute.moved.has(e.to) && reroute.previous.has(e.id) &&
-    shift(e.from) === shift(e.to) && !crossesCard(before(e), e)) : []
+    shift(e.from) === shift(e.to) && !crossesCard(before(e), e) && attached(before(e), e)) : []
   const keepIds = new Set(keep.map((e) => e.id))
   const decisions = facts.flow ? new Set(facts.nodes.filter((n) => ["decision", "choice", "initial", "final"].includes(n.shape ?? "")).map((n) => n.id)) : undefined
   let sides: Map<string, [Dir[], Dir[]]> | undefined

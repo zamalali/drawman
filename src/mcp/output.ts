@@ -114,8 +114,18 @@ function saveDrawio(title: string, xml: string): { file?: string; open?: string;
 export function summarise(args: DiagramInput, save: boolean, withXml = true) {
   const ctx = layoutContext.getStore()
   const prev = previousLayout(args, ctx)
-  const pinned = prev?.positions
-  const { facts, xml, stats, scene } = renderDiagram(args, false, pinned, prev?.keep)
+  let pinned = prev?.positions
+  let rendered: ReturnType<typeof renderDiagram>
+  try {
+    rendered = renderDiagram(args, false, pinned, prev?.keep)
+  } catch (error) {
+    // Keeping the earlier arrangement is a nicety: if it cannot hold the changed diagram, lay it out afresh rather
+    // than fail the change.
+    if (!pinned) throw error
+    pinned = undefined
+    rendered = renderDiagram(args, false)
+  }
+  const { facts, xml, stats, scene } = rendered
   remember(ctx, facts, scene)
   // What the live view needs to show and export the final diagram. Results for hosts without the view leave it out to
   // save tokens; it stays with the drawing (see VIEW_DATA) so a view that is shown anyway can still fetch it.

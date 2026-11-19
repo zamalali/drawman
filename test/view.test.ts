@@ -53,3 +53,13 @@ test("dashed sequence messages stay dashed when a view shows the diagram whole",
   const seq = readFileSync(new URL("../src/view/render-sequence.ts", import.meta.url), "utf8")
   assert.match(seq, /path\.dataset\.dash = e\.rel === "return" \|\| e\.rel === "create" \? "5 4" : ""\s+path\.style\.strokeDasharray = path\.dataset\.dash/)
 })
+test("only a drag pins the cards on screen; zooming or panning during a stream changes no layout", () => {
+  const ui = readFileSync(new URL("../src/view/interaction.ts", import.meta.url), "utf8")
+  const drawFn = stream.slice(stream.indexOf("export function draw("), stream.indexOf("state.current = scene"))
+  assert.match(drawFn, /const positions = state\.cardsMoved && state\.current/)
+  assert.doesNotMatch(drawFn, /state\.userMoved && state\.current/)
+  assert.match(ui, /d\.moved = true\s+state\.userMoved = true\s+state\.cardsMoved = true/, "set when a card or zone drag starts")
+  assert.equal((ui.match(/state\.cardsMoved = true/g) ?? []).length, 1, "nothing else sets it (wheel and pan only move the camera)")
+  const reset = ui.slice(ui.indexOf("ui.reset.onclick"))
+  assert.match(reset, /state\.cardsMoved = false\s+draw\(\)/, "Reset clears it before redrawing")
+})

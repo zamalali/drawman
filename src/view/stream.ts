@@ -82,7 +82,12 @@ export function draw(moved?: Set<string>) {
   try {
     const reroute = moved && state.current ? { moved, previous: new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) }
       : kept ? { moved: new Set<string>(), previous: kept } : undefined
-    scene = buildScene(normaliseFacts(slice, false), state.positions, reroute, state.layout ?? undefined)
+    // Once the user dragged something, every card on screen stays where it is; only cards not drawn yet are placed.
+    // Without this, cards the user never touched counted as new and jumped below the dragged one.
+    const positions = state.cardsMoved && state.current
+      ? { ...Object.fromEntries(state.current.cards.map((c) => [c.node.id, [c.box[0], c.box[1]] as Pt])), ...state.positions }
+      : state.positions
+    scene = buildScene(normaliseFacts(slice, false), positions, reroute, state.layout ?? undefined)
     checkLayout(scene)
   } catch (error) {
     if (inputFinal) setStatus("error", (error as Error).message)

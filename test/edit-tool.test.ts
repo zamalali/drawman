@@ -197,3 +197,15 @@ test("an edit that removes most of the diagram still keeps what is left in place
   const { sc } = await call(client, "edit_diagram", { diagram: first.sc.sheet, remove: ["customers", "orders", "order_items"] })
   assert.equal(places(sc.xml).get("products"), places(first.sc.xml).get("products"))
 })
+
+// Every table growing at once (audit columns on all of them) used to overlap the tables below and fail the edit.
+test("adding columns to every table pushes the tables below down instead of failing", async () => {
+  const client = await connect()
+  const first = await call(client, "create_er_diagram", shop)
+  const { r, sc } = await call(client, "edit_diagram", {
+    diagram: first.sc.sheet,
+    update: shop.entities.map((e: { id: string; fields: string[] }) => ({ id: e.id, fields: [...e.fields, "created_at: timestamp", "updated_at: timestamp", "deleted_at: timestamp", "created_by: uuid", "updated_by: uuid"] })),
+  })
+  assert.ok(!r.isError, text(r))
+  assert.equal(sc.diagram.entities.length, shop.entities.length)
+})
