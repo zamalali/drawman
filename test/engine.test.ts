@@ -1,5 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
+import { execFileSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { renderDiagram, normaliseFacts, buildScene } from "../src/engine/index.js"
 
@@ -115,4 +116,17 @@ test("kind hints understand Azure and SAP wording", () => {
     interfaces: [],
   })
   assert.deepEqual(f.nodes.map((n) => n.kind), ["az_aks", "sap_s4hana", "sap_xsuaa", "az_key_vault", "sap_cloud_connector"])
+})
+
+// Bun and Deno define `self`, which made elkjs take its Web Worker branch: grouped diagrams failed with "ELK worker not
+// available". Runs the layout in a fresh process with `self` defined, as those runtimes have it.
+test("the ELK layout loads where `self` is defined (Bun, Deno) and leaves `self` in place", () => {
+  const elk = new URL("../src/engine/elk.ts", import.meta.url).href
+  const code = `globalThis.self = globalThis
+const { elkLayout } = await import(${JSON.stringify(elk)})
+const out = elkLayout({ id: "root", children: [{ id: "a", width: 10, height: 10 }, { id: "b", width: 10, height: 10 }],
+  edges: [{ id: "e", sources: ["a"], targets: ["b"] }] })
+if (typeof out.children?.[1]?.x !== "number") throw new Error("no layout")
+if (globalThis.self !== globalThis) throw new Error("self was not restored")`
+  execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", code], { stdio: "pipe" })
 })

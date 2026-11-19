@@ -1,5 +1,6 @@
 // Runs ELK's layered algorithm synchronously through its in-process worker (no threads, no promises), so the engine can
 // stay synchronous. The worker is created once and reused.
+import { createRequire } from "node:module"
 import * as ElkWorker from "elkjs/lib/elk-worker.min.js"
 
 export interface ElkNode {
@@ -17,12 +18,26 @@ export interface ElkEdge {
 }
 
 type Worker = { onmessage: (m: { data: { data?: unknown; error?: unknown } }) => void; dispatcher: { saveDispatch(m: { data: unknown }): void } }
+type WorkerModule = { Worker?: new () => Worker; default?: { Worker?: new () => Worker } | (new () => Worker) }
 let worker: Worker | null = null
+
+const ctorOf = (mod: WorkerModule | undefined) => mod?.Worker ?? (typeof mod?.default === "function" ? mod.default : mod?.default?.Worker)
+
+// elkjs exports its worker only where `self` is undefined (Node). Bun and Deno define `self`, so the import above exports
+// nothing there: load the file again, uncached, with `self` hidden.
+function workerWithoutSelf(): (new () => Worker) | undefined {
+  const saved = Object.getOwnPropertyDescriptor(globalThis, "self")
+  if (!saved?.configurable) return undefined
+  const require = createRequire(import.meta.url)
+  const id = require.resolve("elkjs/lib/elk-worker.min.js")
+  delete require.cache[id]
+  delete (globalThis as { self?: unknown }).self
+  try { return ctorOf(require(id) as WorkerModule) } finally { Object.defineProperty(globalThis, "self", saved) }
+}
 
 function call(msg: Record<string, unknown>): unknown {
   if (!worker) {
-    const mod = ElkWorker as unknown as { Worker?: new () => Worker; default?: { Worker?: new () => Worker } | (new () => Worker) }
-    const Ctor = mod.Worker ?? (typeof mod.default === "function" ? mod.default : mod.default?.Worker)
+    const Ctor = ctorOf(ElkWorker as unknown as WorkerModule) ?? workerWithoutSelf()
     if (!Ctor) throw new Error("ELK worker not available")
     worker = new Ctor()
     let ok = false
