@@ -3,6 +3,15 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.4] - 2026-11-19
+
+### Fixed
+
+- Diagrams with containers (regions, zones, or an edit that adds them) failed with "ELK worker not available" when
+  Drawman ran under Bun or Deno. They now lay out on every runtime.
+- A failed call left the canvas pulsing "Designing…" or "Applying the change…" as if still busy. The canvas now stops
+  and shows the error.
+
 ## [0.2.3] - 2026-11-18
 
 ### Fixed

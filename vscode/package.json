@@ -2,7 +2,7 @@
   "name": "drawman",
   "displayName": "Drawman: draw.io on steroids",
   "description": "Ask Copilot for an architecture, flowchart, sequence, state, class or ER diagram and watch it build itself live in chat as an editable draw.io diagram.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "publisher": "drawman",
   "license": "Apache-2.0",
   "repository": {
