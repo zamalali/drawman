@@ -3,6 +3,18 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.5] - 2026-11-19
+
+### Fixed
+
+- Follow-up changes failed in chat hosts that show earlier results as a short preview: the
+  diagram id came last and was cut off, so the model sent another reference and redrew the diagram. Results now
+  start with the diagram id, and an unknown id explains what a diagram id looks like.
+- A view that did not watch the drawing (a fullscreen copy, a reload or a reopened chat) replayed entrance
+  animations and an edit's additions. It now shows the finished diagram at once and still.
+- A tool error could be replaced by "building" again by a pending reveal step or an edit's diagram fetch. Errors
+  now stay shown.
+
 ## [0.2.4] - 2026-11-19
 
 ### Fixed
