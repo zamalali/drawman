@@ -63,4 +63,7 @@ export const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;
 export function setStatus(kind: "waiting" | "building" | "done" | "error", text: string) {
   ui.status.className = `status ${kind}`
   ui.statusText.textContent = text
+  // A failure before anything was drawn must not leave the "Designing…/Applying…" placeholder pulsing as if still busy.
+  ui.empty.classList.toggle("failed", kind === "error")
+  if (kind === "error") $<HTMLElement>("#empty-text").textContent = text
 }

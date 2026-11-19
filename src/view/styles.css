@@ -95,6 +95,7 @@ text { font-family: "Segoe UI", Helvetica, Arial, sans-serif; }
 .empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--color-text-secondary); font-size: 13px; pointer-events: none; transition: opacity .4s; }
 .empty.gone { opacity: 0; }
 .pulse { width: 54px; height: 54px; border-radius: 14px; background: var(--accent); opacity: .85; animation: breathe 1.4s ease-in-out infinite; }
+.empty.failed .pulse { animation: none; opacity: .25; }
 @keyframes breathe { 50% { transform: scale(.82) rotate(8deg); opacity: .45; } }
 
 .ticker { position: absolute; left: 12px; bottom: 12px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; pointer-events: none; max-width: 46%; }

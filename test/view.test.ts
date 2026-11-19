@@ -19,3 +19,12 @@ test("a finished diagram that never streamed (a reload) shows whole instead of r
   assert.match(reveal, /shownNodes = Math\.max\(shownNodes, a\.nodes\)/)
   assert.match(reveal, /shownEdges = Math\.max\(shownEdges, a\.edges\)/)
 })
+
+test("a failed call stops the busy placeholder and says why", () => {
+  const dom = readFileSync(new URL("../src/view/dom.ts", import.meta.url), "utf8")
+  const status = dom.slice(dom.indexOf("export function setStatus"))
+  assert.match(status, /ui\.empty\.classList\.toggle\("failed", kind === "error"\)/)
+  assert.match(status, /if \(kind === "error"\) \$<HTMLElement>\("#empty-text"\)\.textContent = text/)
+  const css = readFileSync(new URL("../src/view/styles.css", import.meta.url), "utf8")
+  assert.match(css, /\.empty\.failed \.pulse \{ animation: none;/)
+})
