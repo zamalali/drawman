@@ -96,9 +96,11 @@ export function createServer(opts: ServerOptions = {}) {
     const view = full ?? Object.fromEntries(["xml", "layout", "positions", "routes"].filter((k) => sc[k] !== undefined).map((k) => [k, sc[k]]))
     const key = keepSheet(tool, args, id, { ...view }, memo)
     const [first, ...rest] = result.content
+    // The id leads the text: hosts that shorten earlier results to a short preview must still show it, or the model
+    // sends edit_diagram some other reference.
     return {
       ...result,
-      content: [{ ...first, text: `${first.text} Diagram id: ${key}. For any follow-up change to it, call edit_diagram with this id and only what changes.` }, ...rest],
+      content: [{ ...first, text: `Diagram id: ${key} (call edit_diagram with it for any follow-up change). ${first.text}` }, ...rest],
       structuredContent: { ...sc, sheet: key },
     }
   }
@@ -411,7 +413,7 @@ export function createServer(opts: ServerOptions = {}) {
     _meta: meta,
   }, async ({ diagram, save, workspace, ...delta }) => {
     const sheet = findSheet(diagram)
-    if (!sheet) return failure("Edit failed", new Error(`No diagram "${diagram}" here (the server may have restarted). Draw it again with the tool that drew it.`))
+    if (!sheet) return failure("Edit failed", new Error(`No diagram "${diagram}". Use the 8-character id that follows "Diagram id:" in the result of the tool that drew it; if no such id is known (or the server restarted), draw it again with that tool.`))
     try {
       const { args, kept, summary } = applyChange(sheet.args, delta as Change, sheet.tool)
       const drawer = drawers.get(sheet.tool)!

@@ -60,7 +60,7 @@ test("create_flowchart renders flowchart shapes and summarises the branches for 
   const refund = JSON.parse(readFileSync(new URL("./refund-flow.json", import.meta.url), "utf8").replace(/^\uFEFF/, ""))
   const r = (await client.callTool({ name: "create_flowchart", arguments: refund })) as CallToolResult
   assert.ok(!r.isError, text(r))
-  assert.match(text(r), /^Rendered flowchart "Customer Refund Request Flow" live for the user: 10 steps, 11 connections/)
+  assert.match(text(r), /^Diagram id: [0-9a-f]{8} \([^)]*\)\. Rendered flowchart "Customer Refund Request Flow" live for the user: 10 steps, 11 connections/)
   assert.match(text(r), /Within 30 days\? -> Inspect the item \(Yes\)/)
   assert.match(String((r.structuredContent as { xml: string }).xml), /rhombus;/)
 })

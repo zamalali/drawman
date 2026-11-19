@@ -46,7 +46,29 @@ const shop = {
 test("every drawing gets an id and the model is told to edit it instead of redrawing", async () => {
   const { r, sc } = await call(await connect(), "create_er_diagram", shop)
   assert.match(sc.sheet, /^[0-9a-f]{8}$/)
-  assert.match(text(r), new RegExp(`Diagram id: ${sc.sheet}\\. For any follow-up change to it, call edit_diagram`))
+  assert.match(text(r), new RegExp(`^Diagram id: ${sc.sheet} \\(call edit_diagram with it for any follow-up change\\)\\. Rendered`))
+})
+
+// Some hosts show earlier results to the model as a short preview (160 characters); the id must be inside it.
+test("the diagram id stays within the first 160 characters, for drawings and for edits", async () => {
+  const client = await connect()
+  const first = await call(client, "create_architecture_diagram", sample)
+  assert.ok(text(first.r).slice(0, 160).includes(`Diagram id: ${first.sc.sheet}`), text(first.r).slice(0, 160))
+  const edited = await call(client, "edit_diagram", {
+    diagram: first.sc.sheet,
+    add_nodes: [{ id: "armor", kind: "cloud_armor", title: "Cloud Armor" }, { id: "sm", kind: "secret_manager", title: "Secret Manager" }],
+    add_connections: [{ from: "armor", to: "run", label: "filters" }, { from: "run", to: "sm", label: "secrets" }],
+    update: [{ id: "gcs", title: "Archive bucket" }],
+    remove: ["logs"],
+  })
+  assert.ok(!edited.r.isError, text(edited.r))
+  assert.ok(text(edited.r).slice(0, 160).includes(`Diagram id: ${first.sc.sheet}`), text(edited.r).slice(0, 160))
+})
+
+test("an unknown id says what a diagram id looks like", async () => {
+  const { r } = await call(await connect(), "edit_diagram", { diagram: "688e19ba.5", add_nodes: [{ id: "x" }] })
+  assert.ok(r.isError)
+  assert.match(text(r), /No diagram "688e19ba\.5"\. Use the 8-character id that follows "Diagram id:"/)
 })
 
 test("edit_diagram adds a table from a small change and keeps every existing table in place", async () => {
@@ -89,7 +111,7 @@ test("edit_diagram explains unknown diagrams, unknown ids and invalid changes", 
   const client = await connect()
   const missing = await call(client, "edit_diagram", { diagram: "00000000", add_nodes: [{ id: "x", name: "x", fields: [] }] })
   assert.ok(missing.r.isError)
-  assert.match(text(missing.r), /Draw it again/)
+  assert.match(text(missing.r), /draw it again with that tool/)
   const { sc } = await call(client, "create_er_diagram", shop)
   const unknown = await call(client, "edit_diagram", { diagram: sc.sheet, remove: ["invoices"] })
   assert.ok(unknown.r.isError)
