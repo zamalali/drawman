@@ -21,6 +21,8 @@ const devCase = (key: string) => { const { name: _n, ...args } = dev.find((c) =>
 
 const CASES: [tool: string, args: Record<string, unknown>][] = [
   ["create_architecture_diagram", json("./sample.json")],
+  // Containers named but no node placed in them, as models sometimes write it.
+  ["create_architecture_diagram", { ...json("./sample.json"), containers: [{ id: "front", title: "Frontend" }, { id: "back", title: "Backend" }] }],
   ["create_flowchart", flows.find((c) => !c.lanes)!],
   ["create_flowchart", flows.find((c) => c.lanes)!],
   ["create_er_diagram", devCase("entities")],
@@ -65,8 +67,9 @@ function change(tool: string, args: Record<string, unknown>, rand: () => number,
     const like = structuredClone(pick(edges) ?? {})
     return { ...like, from, to, ...(kind === "sequence" || kind === "flowchart" || kind === "state" ? { label: `step ${step}` } : {}) }
   }
-  const op = Math.floor(rand() * 8)
+  const op = Math.floor(rand() * 9)
   switch (op) {
+    case 8: return { direction: pick(["TB", "LR"]), remove: ["ghost", "ghost>phantom"], update: [{ id: "phantom", title: "x" }] } // a guess the model makes
     case 0: return { update: nodes.map(grow) } // every table / class grows (the audit-columns case)
     case 1: return { update: [grow(pick(nodes))] }
     case 2: { const n = node(0); return { add_nodes: [n], add_connections: [edge(pick(ids), String(n.id))] } }
@@ -85,7 +88,7 @@ function change(tool: string, args: Record<string, unknown>, rand: () => number,
 
 const rounds = Number(process.env.FUZZ_ROUNDS ?? 4)
 for (const [tool, base] of CASES) {
-  test(`${tool}${base.lanes ? " with lanes" : ""}: ${rounds} sequences of changes never fail`, async () => {
+  test(`${tool}${base.lanes ? " with lanes" : ""}${base.containers ? " with unused containers" : ""}: ${rounds} sequences of changes never fail`, async () => {
     for (let round = 0; round < rounds; round++) {
       const rand = rng(round * 7919 + tool.length)
       const [a, b] = InMemoryTransport.createLinkedPair()

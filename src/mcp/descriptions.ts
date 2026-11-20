@@ -21,8 +21,11 @@ Rules:
 - node.kind MUST be one of the vocabulary below; it decides the platform frame, the zone and the official icon.
 - containers: leave out unless the user explicitly names containers that hold components ("inside one VPC",
   "subnets", "cluster with namespaces", "two regions"). Then list exactly those as {id, title, parent?} (parent nests one
-  inside another), set node.group, and leave components the user puts outside without a group. Never invent containers:
-  without them the platform frames and zones are drawn automatically.
+  inside another), set node.group to the container's id on every node inside it (a container no node names is not
+  drawn), and leave components the user puts outside without a group. Never invent containers:
+  without them the platform frames and zones are drawn automatically, left to right.
+- direction (only with containers, only when the user asks): "LR" lays the containers out left to right (horizontal),
+  "TB" top to bottom (vertical). Omitted, the more compact arrangement is chosen.
 - status: "active" (default), "planned" or "bypassed" (drawn dashed), "external".
 - interface: from/to are node ids, label (shown on the edge, max 4 words: what flows, e.g. "orders", "SQL reads"), protocol (HTTPS, OData, RFC, gRPC, Pub/Sub, JDBC, OIDC...), description one sentence.
 - subtitle: e.g. "<gcp project> · <region>", "<BTP subaccount>" or the scenario.
@@ -120,6 +123,8 @@ Write the arguments in this order: title, subtitle, groups, nodes, interfaces.
 - groups (optional): only the stages / containers the user actually names, in flow order, e.g. [{id:"encoder", title:"Encoder (×N)"}].
   Do not invent groups; without them, nodes are drawn free-standing.
   Nest a group inside another with parent: {id:"ns_api", title:"Namespace api", parent:"cluster"}.
+- direction (only when the user asks): "LR" left to right (horizontal), "TB" top to bottom (vertical); omitted, the
+  more compact one is chosen.
 - nodes: {id, title (the user's wording), detail (max 8 words), group?, icon?}. Omit group for nodes outside every
   group. Order nodes inside a group along the flow.
   icon (optional) is one of ${GENERAL_ICONS.join(", ")} or any architecture kind (e.g. postgres, aws_lambda, kafka);
@@ -148,7 +153,10 @@ new or completely redesigned diagram.
   relationships; state: states, transitions; sequence: participants, messages appended at the end). Put a new node in
   an existing container / group / lane by setting group (or lane) to its id.
 - update: [{id, ...changed fields}] for existing nodes or groups, e.g. [{id:"db", title:"AlloyDB", kind:"alloydb"}].
-- remove: node or group ids (their connections go too), or "from>to" for a single connection.
-- title / subtitle / direction: only when they change.
+- remove: node or group ids (their connections go too), or "from>to" for a single connection. Ids that are not in the
+  diagram are skipped and named in the result.
+- title / subtitle / direction: only when they change. A new direction ("LR" horizontal, "TB" vertical) lays the
+  whole diagram out afresh; for an architecture diagram it applies when it has containers (without them it is always
+  left to right).
 Example, adding AlloyDB behind the orders service: {diagram:"3fa9c2d1", add_nodes:[{id:"alloydb", kind:"alloydb",
 title:"AlloyDB", detail:"orders database"}], add_connections:[{from:"orders", to:"alloydb", protocol:"SQL"}]}`

@@ -2,7 +2,8 @@ import { test } from "node:test"
 import assert from "node:assert/strict"
 import { execFileSync } from "node:child_process"
 import { readFileSync } from "node:fs"
-import { renderDiagram, normaliseFacts, buildScene } from "../src/engine/index.js"
+import { renderDiagram, normaliseFacts, buildScene, diagramKind, usedContainers } from "../src/engine/index.js"
+import { normaliseKind } from "../src/engine/kinds.js"
 
 const sample = JSON.parse(readFileSync(new URL("./sample.json", import.meta.url), "utf8").replace(/^\uFEFF/, ""))
 const reference = JSON.parse(readFileSync(new URL("./golden-layout.json", import.meta.url), "utf8").replace(/^\uFEFF/, ""))
@@ -129,4 +130,29 @@ const out = elkLayout({ id: "root", children: [{ id: "a", width: 10, height: 10 
 if (typeof out.children?.[1]?.x !== "number") throw new Error("no layout")
 if (globalThis.self !== globalThis) throw new Error("self was not restored")`
   execFileSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", code], { stdio: "pipe" })
+})
+
+// Kind hints match at the start of a word: "Centralized logging" in a GCP design is Cloud Logging, not Azure Entra ID.
+test("kind hints match at the start of a word", () => {
+  assert.equal(normaliseKind("logging", "Cloud Logging", "Centralized logging"), "cloud_logging")
+  assert.notEqual(normaliseKind("", "Centralized audit store", ""), "az_entra_id")
+  assert.equal(normaliseKind("identity", "Microsoft Entra ID", ""), "az_entra_id")
+  assert.equal(normaliseKind("", "PostgreSQL 16", ""), "postgres", "a hint still matches the start of a longer word")
+  assert.equal(normaliseKind("object_storage", "Cloud Storage", ""), "object_storage", "an explicit kind is kept")
+})
+// The live view draws every partial input; what kind of diagram it is must not flip while it streams.
+test("streaming input keeps its kind: containers group from the first card, a direction alone is no flowchart", () => {
+  const containers = [{ id: "vpc", title: "VPC" }]
+  const users = { id: "u", kind: "user", title: "Users" }, api = { id: "a", kind: "cloud_run", title: "API", group: "vpc" }
+  assert.deepEqual(usedContainers({ containers, nodes: [users] }), containers, "nodes still streaming: grouped")
+  assert.deepEqual(usedContainers({ containers, nodes: [users, api], interfaces: [] }), containers)
+  assert.equal(usedContainers({ containers, nodes: [users], interfaces: [] }), undefined, "all nodes written, none inside")
+  assert.equal(diagramKind({ containers, nodes: [users], interfaces: [] }), "architecture")
+  assert.equal(diagramKind({ title: "Flow", direction: "LR" }), "flowchart", "a flowchart's direction comes before its nodes")
+  assert.equal(diagramKind({ title: "Flow", direction: "LR", nodes: [{ id: "s", type: "start", title: "Start" }] }), "flowchart")
+  assert.notEqual(diagramKind({ title: "Plan", direction: "LR", nodes: [{ id: "a", title: "A", icon: "g_process" }] }), "flowchart")
+  assert.notEqual(diagramKind({ title: "Plan", direction: "LR", nodes: [{ id: "a", title: "A", detail: "d" }, { id: "b", title: "B" }] }), "flowchart")
+  assert.equal(diagramKind({ title: "Arch", direction: "LR", nodes: [users], interfaces: [] }), "architecture")
+  const view = readFileSync(new URL("../src/view/stream.ts", import.meta.url), "utf8")
+  assert.match(view, /const containers = usedContainers\(latest\)/, "the view decides from all input written, not the revealed cards")
 })

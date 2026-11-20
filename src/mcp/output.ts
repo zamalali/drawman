@@ -31,7 +31,7 @@ const placedAt = (scene: ReturnType<typeof renderDiagram>["scene"]): Positions =
 // layout to use (layoutContext): an edit names its diagram; a plain redraw may match a recent drawing of the same
 // connection by its node ids, which is never done on the shared HTTP server.
 export interface Memo { kind: string; ids: Set<string>; positions: Positions; routes: Map<string, Pt[]> }
-export interface LayoutContext { base?: Memo; recent?: Memo[]; memo?: Memo }
+export interface LayoutContext { base?: Memo; recent?: Memo[]; memo?: Memo; fresh?: boolean }
 export const layoutContext = new AsyncLocalStorage<LayoutContext>()
 // Connections are matched by their ends (from>to, numbered when repeated), since ids are positional.
 const routeKeys = (edges: { id: string; from: string; to: string }[]) => {
@@ -55,7 +55,7 @@ function closest(args: DiagramInput, recent: Memo[]) {
   return best
 }
 function previousLayout(args: DiagramInput, ctx: LayoutContext | undefined): { positions: Positions; keep: Reroute } | undefined {
-  if (!ctx || diagramKind(args) === "sequence") return undefined
+  if (!ctx || ctx.fresh || diagramKind(args) === "sequence") return undefined
   const best = ctx.base && ctx.base.kind === kindOf(args) ? ctx.base : ctx.recent ? closest(args, ctx.recent) : undefined
   if (!best || !Object.keys(best.positions).length) return undefined
   const facts = normaliseFacts(args)

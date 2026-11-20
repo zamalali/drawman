@@ -25,12 +25,19 @@ export interface Group { id: string; title: string; parent?: string }
 export interface Facts {
   title: string; subtitle: string; nodes: Node[]; interfaces: Interface[]; dropped: string[]; groups?: Group[]; flow?: FlowSpec
   sequence?: SequenceSpec
+  // Grouped diagrams: the direction asked for ("LR" left to right, "TB" top to bottom); otherwise the more compact one.
+  prefer?: "DOWN" | "RIGHT"
 }
 
 export function isFlowInput(input: DiagramInput | undefined) {
   if (!input || typeof input !== "object") return false
-  if (typeof input.direction === "string" || Array.isArray(input.connections) || Array.isArray(input.lanes)) return true
-  return Array.isArray(input.nodes) && (input.nodes as unknown[]).some((n) => !!n && typeof n === "object" && "type" in n && !("kind" in n))
+  if (Array.isArray(input.connections) || Array.isArray(input.lanes)) return true
+  const nodes = Array.isArray(input.nodes) ? (input.nodes as unknown[]).filter((n): n is Record<string, unknown> => !!n && typeof n === "object") : []
+  // A direction marks a flowchart only before any node says what it is (flowchart nodes carry a type): architecture and
+  // general diagrams take a direction too.
+  const other = Array.isArray(input.interfaces) || Array.isArray(input.groups) || Array.isArray(input.containers) || nodes.length > 0
+  if (typeof input.direction === "string" && !other) return true
+  return nodes.some((n) => "type" in n && !("kind" in n))
 }
 
 export function resolveIcon(icon: string, title: string, detail = "") {
@@ -57,9 +64,22 @@ export const INPUT_KEYS: Record<DiagramKind, [nodes: string, edges: string]> = {
   state: ["states", "transitions"], class: ["classes", "relationships"], er: ["entities", "relationships"],
   sequence: ["participants", "messages"],
 }
-// The architecture tool calls user-named groups "containers"; with any, it is drawn as a grouped diagram.
-const withContainers = (input: DiagramInput): DiagramInput =>
-  Array.isArray(input.containers) && input.containers.length && !Array.isArray(input.groups) ? { ...input, groups: input.containers } : input
+// The architecture tool calls user-named groups "containers"; with any, it is drawn as a grouped diagram. Containers no
+// node sits in would put every card outside them, in one long column, so once all nodes are written (the interfaces
+// come after them) they are ignored and the platform frames and zones are drawn instead.
+export function usedContainers(input: DiagramInput): unknown[] | undefined {
+  if (!Array.isArray(input.containers) || !input.containers.length || Array.isArray(input.groups)) return undefined
+  if (Array.isArray(input.interfaces) && Array.isArray(input.nodes)) {
+    const ids = new Set((input.containers as unknown[]).map((g) => slug(g && typeof g === "object" ? (g as Record<string, unknown>).id ?? (g as Record<string, unknown>).title : g)))
+    ids.delete("")
+    if (!(input.nodes as unknown[]).some((n) => !!n && typeof n === "object" && ids.has(slug((n as Record<string, unknown>).group)))) return undefined
+  }
+  return input.containers as unknown[]
+}
+const withContainers = (input: DiagramInput): DiagramInput => {
+  const containers = usedContainers(input)
+  return containers ? { ...input, groups: containers } : input
+}
 
 export function diagramKind(input: DiagramInput | undefined): DiagramKind {
   if (!input || typeof input !== "object") return "architecture"
@@ -208,13 +228,15 @@ export function normaliseFacts(input: DiagramInput, streaming = false): Facts {
     : []
   const direction = parseDirection(text(input?.direction))
   const spec: FlowSpec | undefined = layered ? { family: kind, direction, lanes } : undefined
+  const asked = general ? text(input?.direction).toUpperCase() : ""
+  const prefer = asked === "LR" || asked === "RL" ? "RIGHT" as const : asked === "TB" || asked === "BT" ? "DOWN" as const : undefined
   const fallback: Record<DiagramKind, string> = {
     architecture: "Architecture", general: "Diagram", flowchart: "Flowchart", state: "State machine", class: "Class diagram",
     er: "Entity relationship diagram", sequence: "Sequence diagram",
   }
   return {
     title: text(input?.title) || fallback[kind], subtitle: text(input?.subtitle), nodes, interfaces, dropped,
-    ...(groups ? { groups } : {}), ...(spec ? { flow: spec } : {}),
+    ...(groups ? { groups } : {}), ...(spec ? { flow: spec } : {}), ...(prefer ? { prefer } : {}),
     ...(kind === "sequence" ? { sequence: sequenceSpec(raw, streaming) } : {}),
   }
 }

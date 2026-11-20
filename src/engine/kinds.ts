@@ -437,11 +437,14 @@ export const FRAME_RIGHT: ZoneKey[] = ["data", "integration", "ai", "egress"]
 export const OUTSIDE_LEFT: ZoneKey[] = ["cicd", "build"]
 export const OUTSIDE_RIGHT: ZoneKey[] = ["external", "consumers"]
 
+// Hints match at the start of a word: "centralized" does not contain Entra ID, while "postgresql" still is postgres.
+const hinted = (text: string) => KIND_HINTS.find(([words]) => words.some((w) => text.includes(w.startsWith(" ") ? w : ` ${w}`)))?.[1]
+const wordsOf = (s: string) => ` ${s} `.toLowerCase().replace(/[^a-z0-9/.-]+/g, " ")
+
 export function normaliseKind(kind: string, title = "", detail = ""): string {
   const k = (kind || "").trim().toLowerCase().replace(/[\s-]+/g, "_")
   if (k in KIND) return k
-  const text = ` ${kind} ${title} ${detail} `.toLowerCase().replace(/[^a-z0-9/.-]+/g, " ")
-  return KIND_HINTS.find(([words]) => words.some((w) => text.includes(w)))?.[1] ?? "external_source"
+  return hinted(wordsOf(`${kind} ${title} ${detail}`)) ?? "external_source"
 }
 
 export const platformOf = (kind: string): Platform => KIND[kind]?.[2] ?? "neutral"

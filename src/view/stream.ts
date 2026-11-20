@@ -1,5 +1,5 @@
 // Turns streamed tool input into a progressively built scene and finishes it when the result arrives.
-import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, type Card, type Edge, type Positions, type Pt, type Scene, type SerialLayout } from "../engine/index.js"
+import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, usedContainers, type Card, type Edge, type Positions, type Pt, type Scene, type SerialLayout } from "../engine/index.js"
 import { escHtml, layers, setStatus, tick, ui, world } from "./dom.js"
 import { fitTo } from "./camera.js"
 import { app } from "./host.js"
@@ -77,7 +77,10 @@ export function draw(moved?: Set<string>) {
   const [nodeKey, edgeKey] = INPUT_KEYS[diagramKind(latest)]
   const rawNodes = Array.isArray(latest[nodeKey]) ? latest[nodeKey] as unknown[] : []
   const rawIfs = Array.isArray(latest[edgeKey]) ? latest[edgeKey] as unknown[] : []
-  const slice = { ...latest, [nodeKey]: rawNodes.slice(0, shownNodes), [edgeKey]: rawIfs.slice(0, shownEdges) }
+  // Containers are used or not by everything written so far, not by the cards revealed so far: a valid container
+  // diagram is grouped from its first card, as the server draws it.
+  const containers = usedContainers(latest)
+  const slice = { ...latest, ...(containers ? { groups: containers } : {}), [nodeKey]: rawNodes.slice(0, shownNodes), [edgeKey]: rawIfs.slice(0, shownEdges) }
   let scene: Scene
   try {
     const reroute = moved && state.current ? { moved, previous: new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) }

@@ -161,7 +161,7 @@ function snapToGrid(p: Placed, ends: Map<string, [string, string]>) {
 
 function place(t: Tree, options: Record<string, string>): Placed {
   let best: ElkNode | null = null, bestScore = Infinity
-  for (const dir of ["DOWN", "RIGHT"] as const) {
+  for (const dir of t.facts.prefer ? [t.facts.prefer] : ["DOWN", "RIGHT"] as const) {
     const out = elkLayout(graphFor(t, dir, options))
     const s = score(out)
     if (s < bestScore) { best = out; bestScore = s }

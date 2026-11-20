@@ -27,6 +27,8 @@ const GROUPS_ARG = z.array(z.object({
   title: z.string(),
   parent: z.string().optional().describe("id of the enclosing group, for nested containers (subnet inside VPC, namespace inside cluster)"),
 })).max(80).optional().describe("ONLY containers the user's request explicitly names (e.g. 'inside the VPC', 'in the payments namespace'); never invent them")
+const GROUPED_DIRECTION = z.enum(["TB", "LR", "RL", "BT"]).optional()
+  .describe("only when the user asks: LR (or RL) lays containers / groups out left to right, TB (or BT) top to bottom; omit for the more compact one")
 const VIEW_CANDIDATES = ["./view/view.html", "../../dist/view/view.html"].map((p) => fileURLToPath(new URL(p, import.meta.url)))
 const viewHtml = () => {
   const file = VIEW_CANDIDATES.find((f) => existsSync(f))
@@ -80,8 +82,8 @@ export function createServer(opts: ServerOptions = {}) {
   const drawers = new Map<string, { schema: z.ZodTypeAny; run: (args: never) => Promise<Drawn> }>()
   // Recent layouts, so a plain redraw of the same diagram keeps its places too; only within this connection.
   const recent: Memo[] | undefined = opts.stateless ? undefined : []
-  const drawing = async (run: () => Promise<Drawn>, base?: Memo) => {
-    const ctx: LayoutContext = { base, recent }
+  const drawing = async (run: () => Promise<Drawn>, base?: Memo, fresh = false) => {
+    const ctx: LayoutContext = { base, recent, fresh }
     const result = await layoutContext.run(ctx, run)
     return { result, memo: ctx.memo }
   }
@@ -130,6 +132,7 @@ export function createServer(opts: ServerOptions = {}) {
           group: z.string().optional().describe("only with containers: id of the container it sits in; omit when outside all of them"),
         })).min(1).max(MAX_NODES),
         containers: GROUPS_ARG,
+        direction: GROUPED_DIRECTION,
         interfaces: z.array(z.object({
           from: z.string(),
           to: z.string(),
@@ -168,6 +171,7 @@ export function createServer(opts: ServerOptions = {}) {
         title: z.string().max(100),
         subtitle: z.string().max(140).optional(),
         groups: GROUPS_ARG,
+        direction: GROUPED_DIRECTION,
         nodes: z.array(z.object({
           id: z.string().describe("short_snake_case unique id"),
           title: z.string().describe("the name, in the user's own wording"),
@@ -415,20 +419,22 @@ export function createServer(opts: ServerOptions = {}) {
     const sheet = findSheet(diagram)
     if (!sheet) return failure("Edit failed", new Error(`No diagram "${diagram}". Use the 8-character id that follows "Diagram id:" in the result of the tool that drew it; if no such id is known (or the server restarted), draw it again with that tool.`))
     try {
-      const { args, kept, summary } = applyChange(sheet.args, delta as Change, sheet.tool)
+      const { args, kept, summary, note } = applyChange(sheet.args, delta as Change, sheet.tool)
       const drawer = drawers.get(sheet.tool)!
+      // A new direction means a new arrangement: lay it out afresh instead of keeping every card where it was.
+      const turned = typeof delta.direction === "string" && delta.direction !== sheet.args.direction
       const parsed = drawer.schema.safeParse({ ...args, ...(save !== undefined ? { save } : {}), ...(workspace ? { workspace } : {}) })
       if (!parsed.success) {
         const issues = parsed.error.issues.slice(0, 5).map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
         return failure("Edit failed", new Error(`the changed diagram is not valid for ${sheet.tool} (${issues})`))
       }
-      const drawn = await drawing(() => drawer.run(parsed.data as never), sheet.memo)
+      const drawn = await drawing(() => drawer.run(parsed.data as never), sheet.memo, turned)
       const result = remembered(drawn.result, sheet.tool, args, drawn.memo, diagram.trim())
       if (result.isError) return result
       const [first, ...rest] = result.content
       return {
         ...result,
-        content: [{ ...first, text: `${summary} ${first.text}` }, ...rest],
+        content: [{ ...first, text: `${summary} ${first.text}${note}` }, ...rest],
         structuredContent: { ...result.structuredContent, diagram: args, edit: kept },
       }
     } catch (error) {

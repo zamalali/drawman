@@ -52,10 +52,14 @@ export function applyChange(base: Item, change: Change, tool = "") {
   const known = () => [...nodeIds(), ...groupIds()].slice(0, 60).join(", ")
   const edgeKeyOf = (e: Item) => `${e.from}>${e.to}`
 
+  // Ids that are not in the diagram (a guess at a connection between containers, a misspelt id) are skipped and named in
+  // the result, so the rest of the change still applies instead of the whole edit failing.
+  const skipped: string[] = []
   const remove = new Set((change.remove ?? []).map((r) => r.replace(/\s*(->|→|>)\s*/, ">").trim()))
-  for (const r of remove) {
+  for (const r of [...remove]) {
     if (r.includes(">") ? !list(edgeKey).some((e) => edgeKeyOf(e) === r) : !nodeIds().has(r) && !groupIds().has(r)) {
-      throw new Error(`Cannot remove "${r}": it is not in this diagram. Ids here: ${known()}`)
+      remove.delete(r)
+      skipped.push(r)
     }
   }
   const goneNodes = new Set([...nodeIds()].filter((id) => remove.has(id)))
@@ -70,11 +74,13 @@ export function applyChange(base: Item, change: Change, tool = "") {
   args[edgeKey] = list(edgeKey).filter((e) => !remove.has(edgeKeyOf(e)) && !goneNodes.has(String(e.from)) && !goneNodes.has(String(e.to)))
   const kept = { nodes: list(nodeKey).length, edges: list(edgeKey).length }
 
+  let updated = 0
   for (const u of change.update ?? []) {
     const id = String(u.id ?? "")
     const target = list(nodeKey).find((n) => String(n.id) === id) ?? (groupKey ? list(groupKey).find((g) => String(g.id) === id) : undefined)
-    if (!target) throw new Error(`Cannot update "${id}": it is not in this diagram. Ids here: ${known()}`)
+    if (!target) { skipped.push(id); continue }
     Object.assign(target, u, { id: target.id })
+    updated++
   }
   const upsert = (key: string, items: Item[] | undefined) => {
     if (!items?.length) return
@@ -95,8 +101,11 @@ export function applyChange(base: Item, change: Change, tool = "") {
     change.add_nodes?.length ? `+${change.add_nodes.length} ${nodeKey}` : "",
     change.add_connections?.length ? `+${change.add_connections.length} ${edgeKey}` : "",
     change.add_groups?.length ? `+${change.add_groups.length} ${groupKey}` : "",
-    change.update?.length ? `${change.update.length} updated` : "",
+    updated ? `${updated} updated` : "",
     remove.size ? `${remove.size} removed` : "",
   ].filter(Boolean)
-  return { args, kept, summary: parts.length ? `Edited (${parts.join(", ")}).` : "Edited." }
+  const edited = parts.length ? `Edited (${parts.join(", ")}).` : "Edited."
+  // Kept short: the result text must leave the diagram id inside the first 160 characters.
+  const note = skipped.length ? ` Skipped, not in this diagram: ${skipped.slice(0, 6).join(", ")}${skipped.length > 6 ? "…" : ""}. Ids here: ${known()}.` : ""
+  return { args, kept, summary: edited, note }
 }

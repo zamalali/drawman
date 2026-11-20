@@ -113,9 +113,14 @@ test("edit_diagram explains unknown diagrams, unknown ids and invalid changes", 
   assert.ok(missing.r.isError)
   assert.match(text(missing.r), /draw it again with that tool/)
   const { sc } = await call(client, "create_er_diagram", shop)
-  const unknown = await call(client, "edit_diagram", { diagram: sc.sheet, remove: ["invoices"] })
-  assert.ok(unknown.r.isError)
-  assert.match(text(unknown.r), /"invoices".*Ids here: customers, orders/)
+  // Unknown ids are skipped and named; the rest of the change still applies, so the edit never fails over a guess.
+  const unknown = await call(client, "edit_diagram", {
+    diagram: sc.sheet, remove: ["invoices", "customers>invoices"], update: [{ id: "products", name: "items" }, { id: "nope", name: "x" }],
+  })
+  assert.ok(!unknown.r.isError, text(unknown.r))
+  assert.match(text(unknown.r), /^Edited \(1 updated\)\. Diagram id: /)
+  assert.match(text(unknown.r), /Skipped, not in this diagram: invoices, customers>invoices, nope\. Ids here: customers, orders/)
+  assert.equal((unknown.sc.diagram.entities as { id: string; name: string }[]).find((e) => e.id === "products")?.name, "items")
   const invalid = await call(client, "edit_diagram", { diagram: sc.sheet, add_connections: [{ from: "orders", to: "products" }] })
   assert.ok(invalid.r.isError)
   assert.match(text(invalid.r), /not valid for create_er_diagram.*cardinality/)
@@ -208,4 +213,58 @@ test("adding columns to every table pushes the tables below down instead of fail
   })
   assert.ok(!r.isError, text(r))
   assert.equal(sc.diagram.entities.length, shop.entities.length)
+})
+
+// From a real chat: four containers named, no node placed in any; then "make it horizontal".
+const gcp = {
+  title: "Full-stack GCP app",
+  containers: [{ id: "frontend_zone", title: "Frontend" }, { id: "api_zone", title: "API" }, { id: "data_zone", title: "Data & ML" }],
+  nodes: [
+    { id: "users", kind: "user", title: "Users" }, { id: "cdn", kind: "cloud_cdn", title: "Cloud CDN" },
+    { id: "lb", kind: "load_balancer", title: "Load Balancer" }, { id: "run", kind: "cloud_run", title: "Cloud Run" },
+    { id: "sql", kind: "cloud_sql", title: "Cloud SQL" }, { id: "vertex", kind: "vertex_ai", title: "Vertex AI" },
+    { id: "bq", kind: "bigquery", title: "BigQuery" },
+  ],
+  interfaces: [
+    { from: "users", to: "cdn" }, { from: "cdn", to: "lb" }, { from: "lb", to: "run" }, { from: "run", to: "sql" },
+    { from: "run", to: "vertex" }, { from: "run", to: "bq" },
+  ],
+}
+
+test("containers no node sits in are ignored, so the diagram keeps its platform frames instead of one long column", async () => {
+  const client = await connect()
+  const empty = await call(client, "create_architecture_diagram", gcp)
+  const { containers: _c, ...plain } = gcp
+  const without = await call(client, "create_architecture_diagram", { ...plain, title: "Plain" })
+  assert.ok(!empty.r.isError, text(empty.r))
+  assert.deepEqual(places(empty.sc.xml), places(without.sc.xml))
+})
+
+test("a direction turns a grouped architecture horizontal, and later edits still treat it as an architecture", async () => {
+  const client = await connect()
+  const grouped = { ...gcp, nodes: gcp.nodes.map((n, i) => ({ ...n, group: gcp.containers[Math.min(2, Math.floor(i / 3))].id })) }
+  const first = await call(client, "create_architecture_diagram", grouped)
+  const wide = await call(client, "edit_diagram", { diagram: first.sc.sheet, direction: "LR" })
+  assert.ok(!wide.r.isError, text(wide.r))
+  const span = (xml: string) => { const at = [...places(xml).values()].map((p) => p.split(",").map(Number)); const xs = at.map((p) => p[0]), ys = at.map((p) => p[1]); return [Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)] }
+  const [w, h] = span(wide.sc.xml)
+  assert.ok(w > h, `left to right is wider than tall (${w}x${h})`)
+  const tall = await call(client, "edit_diagram", { diagram: first.sc.sheet, direction: "TB" })
+  const [w2, h2] = span(tall.sc.xml)
+  assert.ok(h2 > w2, `top to bottom is taller than wide (${w2}x${h2})`)
+  const more = await call(client, "edit_diagram", { diagram: first.sc.sheet, add_nodes: [{ id: "gcs", kind: "cloud_storage", title: "Cloud Storage", group: "data_zone" }], add_connections: [{ from: "run", to: "gcs" }] })
+  assert.ok(!more.r.isError, text(more.r))
+  assert.equal(more.sc.diagram.interfaces.length, gcp.interfaces.length + 1, "still an architecture: interfaces, not flowchart connections")
+})
+
+test("a new direction in an edit lays a flowchart out afresh", async () => {
+  const client = await connect()
+  const flow = { title: "Refund", nodes: [{ id: "a", type: "start", title: "Request" }, { id: "b", type: "process", title: "Check" }, { id: "c", type: "end", title: "Refund" }], connections: [{ from: "a", to: "b" }, { from: "b", to: "c" }] }
+  const first = await call(client, "create_flowchart", flow)
+  const turned = await call(client, "edit_diagram", { diagram: first.sc.sheet, direction: "LR" })
+  assert.ok(!turned.r.isError, text(turned.r))
+  const [a0, b0] = ["a", "b"].map((id) => places(first.sc.xml).get(id)!.split(",").map(Number))
+  const [a1, b1] = ["a", "b"].map((id) => places(turned.sc.xml).get(id)!.split(",").map(Number))
+  assert.ok(b0[1] > a0[1] && b0[0] === a0[0], "first top to bottom")
+  assert.ok(b1[0] > a1[0], "then left to right")
 })
