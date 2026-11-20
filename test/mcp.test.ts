@@ -93,11 +93,12 @@ test("a view shown by a host taken for a terminal (Copilot CLI in VS Code) fetch
   assert.equal(gsc.layout, undefined)
   const gview = (await client.callTool({ name: "show_diagram", arguments: { diagram: gsc.sheet } })).structuredContent as { layout?: unknown }
   assert.ok(gview.layout, "grouped diagrams come with the server's final layout, as in a host that shows the view")
-  // An edit there: the result stays small, and the drawing the view fetches is the edited one.
+  // An edit there: the result carries the edited diagram (the view may not be able to call tools), and the drawing the
+  // view fetches is the edited one too.
   const edited = (await client.callTool({ name: "edit_diagram", arguments: { diagram: sc.sheet, add_nodes: [{ id: "bq", kind: "bigquery", title: "BigQuery" }], add_connections: [{ from: "run", to: "bq" }] } })) as CallToolResult
   assert.ok(!edited.isError, JSON.stringify(edited.content))
-  const ewire = JSON.parse(JSON.stringify(edited.structuredContent)) as Record<string, unknown>
-  assert.equal(ewire.diagram, undefined, "no diagram in the model's context")
+  const ewire = JSON.parse(JSON.stringify(edited.structuredContent)) as { diagram: { nodes: { id: string }[] } }
+  assert.ok(ewire.diagram.nodes.some((n) => n.id === "bq"), "the edit result carries the edited diagram")
   const after = (await client.callTool({ name: "show_diagram", arguments: { diagram: sc.sheet } })).structuredContent as { diagram: { nodes: { id: string }[] } }
   assert.ok(after.diagram.nodes.some((n) => n.id === "bq"), "the view fetches the edited diagram")
   const stream = readFileSync(new URL("../src/view/stream.ts", import.meta.url), "utf8")
@@ -238,4 +239,22 @@ test("Streamable HTTP transport serves the same tools", async () => {
     assert.ok(!r.isError, text(r))
     await client.close()
   } finally { server.close() }
+})
+
+// A host behind a gateway that does not pass the MCP Apps capability on, whose view cannot call tools either: every
+// result must carry what the view needs, or an edit stays on "Applying the change…".
+test("without the MCP Apps capability, create and edit results still carry the drawing and the diagram", async () => {
+  const saved = config.workspaceRoots
+  config.workspaceRoots = []
+  try {
+    const client = await connect({})
+    const first = (await client.callTool({ name: "create_architecture_diagram", arguments: sample })) as CallToolResult
+    const sc = first.structuredContent as { xml?: string; diagram?: { nodes: unknown[] }; sheet: string }
+    assert.ok(sc.xml && sc.diagram, "create: xml and diagram")
+    const edited = (await client.callTool({ name: "edit_diagram", arguments: { diagram: sc.sheet, add_nodes: [{ id: "bq", kind: "bigquery", title: "BigQuery" }], add_connections: [{ from: "run", to: "bq" }] } })) as CallToolResult
+    const esc = edited.structuredContent as { xml?: string; diagram?: { nodes: { id: string }[] }; edit?: unknown }
+    assert.ok(!edited.isError, JSON.stringify(edited.content))
+    assert.ok(esc.xml && esc.edit, "edit: xml and the kept counts")
+    assert.ok(esc.diagram?.nodes.some((n) => n.id === "bq"), "edit: the edited diagram")
+  } finally { config.workspaceRoots = saved }
 })

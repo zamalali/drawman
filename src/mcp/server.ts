@@ -103,8 +103,9 @@ export function createServer(opts: ServerOptions = {}) {
     return {
       ...result,
       content: [{ ...first, text: `Diagram id: ${key} (call edit_diagram with it for any follow-up change). ${first.text}` }, ...rest],
-      // The arguments as drawn (validated: unknown fields dropped), so the live view finishes with exactly the file's diagram.
-      structuredContent: { ...sc, sheet: key, ...(liveView() || sc.diagram ? { diagram: args } : {}) },
+      // The arguments as drawn (validated: unknown fields dropped), so the view finishes with exactly the file's diagram.
+      // Left out only where the result also leaves the drawing out (a terminal host that got a saved file instead).
+      structuredContent: { ...sc, sheet: key, ...(liveView() || sc.diagram || sc.xml ? { diagram: args } : {}) },
     }
   }
   const tool = <S extends z.ZodRawShape, A = z.infer<z.ZodObject<S>>>(name: string, cfg: { inputSchema: S } & Record<string, unknown>, run: (args: A) => Promise<Drawn>, as = name) => {
@@ -437,7 +438,8 @@ export function createServer(opts: ServerOptions = {}) {
       return {
         ...result,
         content: [{ ...first, text: `${summary} ${first.text}${note}` }, ...rest],
-        structuredContent: { ...result.structuredContent, edit: kept },
+        // Edits always carry the diagram as drawn: a view that cannot call tools (some hosts) has no other way to get it.
+        structuredContent: { ...result.structuredContent, diagram: rendered, edit: kept },
       }
     } catch (error) {
       return failure("Edit failed", error)

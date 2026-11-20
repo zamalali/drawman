@@ -63,3 +63,7 @@ test("only a drag pins the cards on screen; zooming or panning during a stream c
   const reset = ui.slice(ui.indexOf("ui.reset.onclick"))
   assert.match(reset, /state\.cardsMoved = false\s+draw\(\)/, "Reset clears it before redrawing")
 })
+test("a result the view cannot draw from never leaves it busy", () => {
+  const tailNoLatest = onResult.slice(onResult.lastIndexOf("resultReady = true"))
+  assert.match(tailNoLatest, /if \(!latest\) \{[\s\S]*if \(state\.xml\) \{[\s\S]*setStatus\("done", "Updated · open it in draw\.io"\)[\s\S]*ui\.download\.disabled = ui\.open\.disabled = false/)
+})

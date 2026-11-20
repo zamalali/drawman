@@ -252,7 +252,16 @@ app.ontoolresult = async (result) => {
     return
   }
   resultReady = true
-  if (!latest) return
+  if (!latest) {
+    // Nothing to draw from (a host whose view cannot fetch the diagram): never stay "Applying"; the file is still there.
+    if (state.xml) {
+      ui.empty.classList.add("failed")
+      ui.empty.querySelector("div:last-child")!.textContent = "This version cannot be shown here: open it in draw.io."
+      setStatus("done", "Updated · open it in draw.io")
+      ui.download.disabled = ui.open.disabled = false
+    }
+    return
+  }
   // Streamed live: keep revealing at the drawing pace. Never streamed (a View restored after a reload, a fullscreen
   // copy, or a host that sends no partial input): the diagram is final, so show it whole instead of replaying it.
   if (streamed) {
