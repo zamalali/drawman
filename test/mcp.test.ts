@@ -258,3 +258,19 @@ test("without the MCP Apps capability, create and edit results still carry the d
     assert.ok(esc.diagram?.nodes.some((n) => n.id === "bq"), "edit: the edited diagram")
   } finally { config.workspaceRoots = saved }
 })
+// Model APIs validate tool schemas strictly: Anthropic rejects the tuple form ("items": [..]) and some APIs (Gemini
+// function calling) reject "$ref". Hosts may send app-only tools to the model too, so every tool must pass.
+test("every tool schema avoids forms model APIs reject (tuple items, $ref, type lists)", async () => {
+  const client = await connect(UI)
+  const bad: string[] = []
+  const walk = (s: unknown, at: string) => {
+    if (!s || typeof s !== "object") return
+    const o = s as Record<string, unknown>
+    if (Array.isArray(o.items)) bad.push(`${at}.items is a tuple`)
+    if ("$ref" in o) bad.push(`${at} uses $ref`)
+    if (Array.isArray(o.type)) bad.push(`${at}.type is a list`)
+    for (const [k, v] of Object.entries(o)) walk(v, `${at}.${k}`)
+  }
+  for (const t of (await client.listTools()).tools) walk(t.inputSchema, t.name)
+  assert.deepEqual(bad, [])
+})

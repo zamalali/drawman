@@ -7,7 +7,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { RootsListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js"
 import { z } from "zod"
 import { config, isBroad } from "../config.js"
-import { FLOW_SHAPES, FLOW_TONES, GENERAL_ICONS } from "../engine/index.js"
+import { FLOW_SHAPES, FLOW_TONES, GENERAL_ICONS, type Positions } from "../engine/index.js"
 import { httpCompleter, samplingCompleter } from "../llm.js"
 import { analyzeRepository, applyRecentEvidence, type Analysis } from "../repo/analyze.js"
 import { VERSION } from "../version.js"
@@ -395,7 +395,8 @@ export function createServer(opts: ServerOptions = {}) {
     "create_architecture_diagram",
   )
 
-  const change = z.object({}).passthrough()
+  // A fresh schema per field: a shared one is emitted as "$ref", which some model APIs reject.
+  const change = () => z.object({}).passthrough()
   registerAppTool(server, "edit_diagram", {
     title: "Edit diagram",
     description: EDIT_DESCRIPTION(),
@@ -404,11 +405,11 @@ export function createServer(opts: ServerOptions = {}) {
       title: z.string().max(120).optional(),
       subtitle: z.string().max(140).optional(),
       direction: z.enum(["TB", "LR", "RL", "BT"]).optional(),
-      add_nodes: z.array(change).max(MAX_NODES).optional()
+      add_nodes: z.array(change()).max(MAX_NODES).optional()
         .describe("new nodes / tables / classes / states / participants, with the same fields the drawing tool uses; an existing id is updated instead"),
-      add_connections: z.array(change).max(MAX_EDGES).optional()
+      add_connections: z.array(change()).max(MAX_EDGES).optional()
         .describe("new interfaces / connections / relationships / transitions / messages, with the same fields the drawing tool uses"),
-      add_groups: z.array(change).max(40).optional().describe("new containers (architecture), groups (create_diagram) or lanes (flowchart)"),
+      add_groups: z.array(change()).max(40).optional().describe("new containers (architecture), groups (create_diagram) or lanes (flowchart)"),
       update: z.array(z.object({ id: z.string() }).passthrough()).max(MAX_NODES).optional()
         .describe("changed fields of existing nodes or groups, e.g. [{id:'db', title:'AlloyDB'}]"),
       remove: z.array(z.string()).max(MAX_EDGES).optional()
@@ -452,14 +453,15 @@ export function createServer(opts: ServerOptions = {}) {
     description: "Records where the user moved shapes in the live view, so edit_diagram keeps them there.",
     inputSchema: {
       diagram: z.string().max(40),
-      positions: z.record(z.string(), z.tuple([z.number(), z.number()])).nullable(),
+      // [x, y] as a plain number list: the tuple form ("items": [..]) is invalid JSON Schema for some model APIs.
+      positions: z.record(z.string(), z.array(z.number()).length(2)).nullable(),
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: { ui: { resourceUri: RESOURCE_URI, visibility: ["app"] as ("model" | "app")[] } },
   }, async ({ diagram, positions }) => {
     const sheet = findSheet(diagram)
     const ok = Boolean(sheet?.memo)
-    if (sheet?.memo) adjustLayout(sheet.memo, positions)
+    if (sheet?.memo) adjustLayout(sheet.memo, positions as Positions | null)
     if (sheet) {
       // The view shown during the next edit starts from the same arrangement; its lines are routed afresh.
       delete sheet.view.routes
