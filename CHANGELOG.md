@@ -3,6 +3,36 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.6] - 2026-11-20
+
+### Added
+
+- Architecture diagrams with containers and grouped diagrams take a `direction`: `LR` lays them out horizontally,
+  `TB` vertically. An edit that changes the direction lays the diagram out afresh.
+
+### Fixed
+
+- Edits that made cards taller (columns added to every table, longer titles) failed with "layout overlap". Cards
+  below a grown one now slide down; if the earlier arrangement cannot hold the change, it is laid out afresh. This
+  affected every earlier version.
+- An edit failed as a whole when it named an id that is not in the diagram. Unknown ids are skipped and named in the
+  result; the rest of the change applies.
+- Containers named without any node in them stacked every card in one tall column. They are ignored, so the
+  platform frames and zones are drawn.
+- The canvas could differ from the file that is downloaded or opened in draw.io (a grouped diagram drawn without
+  groups, extra fields a model added, lanes after some edits). The view now finishes with exactly the server's
+  diagram and layout.
+- In hosts that connect without the MCP Apps capability and whose view cannot call tools, an edit stayed on
+  "Applying the change…". Edit results carry the edited diagram again, and a view with nothing to draw says so.
+- Tool schemas used a tuple and `$ref`, which some model APIs reject, failing every request in hosts that pass all
+  tools to the model.
+- Dragging a card made untouched cards jump, zooming while a diagram streamed could freeze a half-drawn layout,
+  and Reset kept the dragged arrangement.
+- Kind hints matched inside words ("Centralized logging" became Azure Entra ID). They match at the start of a word.
+- Download is offered only where the view can save a file; elsewhere Open in draw.io is the export.
+- Two different diagrams with the same title overwrote each other's .drawio file in the project. The second one
+  gets a numbered name; an edit keeps writing to its own diagram's file.
+
 ## [0.2.5] - 2026-11-19
 
 ### Fixed
