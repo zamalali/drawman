@@ -40,27 +40,28 @@ ui.download.onclick = async () => {
   const xml = exportXml()
   if (!xml) return
   if (app.getHostCapabilities()?.downloadFile) {
-    try {
-      const res = await app.downloadFile({ contents: [{ type: "resource", resource: { uri: `file:///${fileName()}`, mimeType: "application/vnd.jgraph.mxfile", text: xml } }] })
-      if (!res.isError) { tick(`⬇ <b>${escHtml(fileName())}</b> downloaded`); return }
-    } catch { /* fall through */ }
-  }
-  // Outside a host the page can save the file itself. A host that embeds the view without file downloads sandboxes it,
-  // where a download link does nothing: open the same diagram in draw.io instead, which saves it as .drawio.
-  if (window.parent === window) {
-    const a = document.createElement("a")
-    a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" }))
-    a.download = fileName()
-    a.click()
+    const res = await app.downloadFile({ contents: [{ type: "resource", resource: { uri: `file:///${fileName()}`, mimeType: "application/vnd.jgraph.mxfile", text: xml } }] }).catch(() => ({ isError: true }))
+    if (!res.isError) tick(`⬇ <b>${escHtml(fileName())}</b> downloaded`)
     return
   }
-  if (await openInDrawio(xml)) tick(`This chat cannot save files: opened in draw.io, save it there with <b>File › Save as</b>`)
+  const a = document.createElement("a")
+  a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" }))
+  a.download = fileName()
+  a.click()
 }
 ui.open.onclick = async () => {
   const xml = exportXml()
   if (xml) await openInDrawio(xml)
 }
+// A host that embeds the view without file downloads sandboxes it, where a download link does nothing: there the only
+// export is draw.io (which saves .drawio, PNG, SVG and PDF), so it becomes the main button.
+function exportButtons() {
+  const canSave = !!app.getHostCapabilities()?.downloadFile || window.parent === window
+  ui.download.hidden = !canSave
+  ui.open.classList.toggle("primary", !canSave)
+  if (!canSave) ui.open.title = "Open in draw.io to edit it, or save it there as .drawio, PNG, SVG or PDF"
+}
 
 fitTo(null, true)
 void ICONS
-app.connect().then(() => applyContext(app.getHostContext())).catch(() => setStatus("error", "No MCP Apps host connection"))
+app.connect().then(() => { applyContext(app.getHostContext()); exportButtons() }).catch(() => setStatus("error", "No MCP Apps host connection"))

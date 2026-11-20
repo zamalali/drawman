@@ -67,3 +67,11 @@ test("a result the view cannot draw from never leaves it busy", () => {
   const tailNoLatest = onResult.slice(onResult.lastIndexOf("resultReady = true"))
   assert.match(tailNoLatest, /if \(!latest\) \{[\s\S]*if \(state\.xml\) \{[\s\S]*setStatus\("done", "Updated · open it in draw\.io"\)[\s\S]*ui\.download\.disabled = ui\.open\.disabled = false/)
 })
+test("Download is offered only where the view can save a file; otherwise Open in draw.io is the export", () => {
+  const view = readFileSync(new URL("../src/view/view.ts", import.meta.url), "utf8")
+  assert.match(view, /const canSave = !!app\.getHostCapabilities\(\)\?\.downloadFile \|\| window\.parent === window/)
+  assert.match(view, /ui\.download\.hidden = !canSave/)
+  assert.match(view, /ui\.open\.classList\.toggle\("primary", !canSave\)/)
+  assert.match(view, /applyContext\(app\.getHostContext\(\)\); exportButtons\(\)/, "decided once connected, when the host's capabilities are known")
+  assert.doesNotMatch(view.slice(view.indexOf("ui.download.onclick"), view.indexOf("ui.open.onclick")), /openInDrawio/, "Download never just opens draw.io")
+})
