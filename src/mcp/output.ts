@@ -30,7 +30,7 @@ const placedAt = (scene: ReturnType<typeof renderDiagram>["scene"]): Positions =
 // it, so existing nodes (and their groups) stay where they were and only new nodes are placed. The tool call says which
 // layout to use (layoutContext): an edit names its diagram; a plain redraw may match a recent drawing of the same
 // connection by its node ids, which is never done on the shared HTTP server.
-export interface Memo { kind: string; ids: Set<string>; positions: Positions; routes: Map<string, Pt[]> }
+export interface Memo { kind: string; ids: Set<string>; positions: Positions; routes: Map<string, Pt[]>; file?: string }
 export interface LayoutContext { base?: Memo; recent?: Memo[]; memo?: Memo; fresh?: boolean }
 export const layoutContext = new AsyncLocalStorage<LayoutContext>()
 // Connections are matched by their ends (from>to, numbered when repeated), since ids are positional.
@@ -93,7 +93,10 @@ export function adjustLayout(memo: Memo, moved: Positions | null) {
   }
 }
 
-function saveDrawio(title: string, xml: string): { file?: string; open?: string; note?: string } {
+// Files written by this server, so a different diagram that happens to share a title gets its own file instead of
+// overwriting one drawn earlier; an edit writes to its diagram's own file.
+const claimed = new Set<string>()
+function saveDrawio(title: string, xml: string, own?: string): { file?: string; open?: string; note?: string } {
   const root = config.workspaceRoots[0]
   if (!root) return { note: "Not saved: no workspace folder is configured (set DRAWMAN_WORKSPACE_ROOTS)." }
   const dir = path.resolve(root, config.outputDir)
@@ -101,9 +104,11 @@ function saveDrawio(title: string, xml: string): { file?: string; open?: string;
   if (rel.startsWith("..") || path.isAbsolute(rel)) return { note: `Not saved: the output folder ${config.outputDir} is outside the workspace.` }
   try {
     mkdirSync(dir, { recursive: true })
-    const file = path.join(dir, `${slug(title)}.drawio`)
+    let file = own && path.dirname(own) === dir ? own : path.join(dir, `${slug(title)}.drawio`)
+    for (let n = 2; file !== own && claimed.has(file); n++) file = path.join(dir, `${slug(title)}-${n}.drawio`)
+    claimed.add(file)
     writeFileSync(file, xml)
-    const open = path.join(dir, `${slug(title)}.drawio.html`)
+    const open = `${file}.html`
     writeFileSync(open, opener(title, diagramsNetLink(title, xml)))
     return { file, open }
   } catch (error) {
@@ -140,7 +145,8 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
   const zones = scene.zones.map((z) => `${z.title} (${scene.cards.filter((c) => c.zoneId === z.id).length})`).join(", ")
   const titles = new Map(facts.nodes.map((n) => [n.id, n.title]))
   const ifs = scene.edges.map((e) => `${e.id} ${titles.get(e.from)} -> ${titles.get(e.to)}`).join("; ")
-  const saved = save ? saveDrawio(facts.title, xml) : {}
+  const saved = save ? saveDrawio(facts.title, xml, ctx?.base?.file) : {}
+  if (ctx?.memo && saved.file) ctx.memo.file = saved.file
   const file = saved.file ?? null
   const open = saved.open ? pathToFileURL(saved.open).href : null
   const notes = [

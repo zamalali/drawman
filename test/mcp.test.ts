@@ -274,3 +274,18 @@ test("every tool schema avoids forms model APIs reject (tuple items, $ref, type 
   for (const t of (await client.listTools()).tools) walk(t.inputSchema, t.name)
   assert.deepEqual(bad, [])
 })
+// Two different diagrams can share a title (an architecture and its ER schema, both "Shop"): neither may overwrite the
+// other's file, while an edit keeps writing to its own diagram's file.
+test("diagrams that share a title keep their own files; an edit updates its own file", async () => {
+  const client = await connect({})
+  const er = { title: "Shared title", entities: [{ id: "c", name: "customers", fields: ["PK id: uuid"] }], relationships: [] }
+  const a = (await client.callTool({ name: "create_architecture_diagram", arguments: { ...sample, title: "Shared title" } })).structuredContent as { file: string; sheet: string }
+  const b = (await client.callTool({ name: "create_er_diagram", arguments: er })).structuredContent as { file: string }
+  assert.notEqual(a.file, b.file, "the second diagram gets its own file")
+  assert.match(b.file, /shared-title-2\.drawio$/)
+  const before = readFileSync(b.file, "utf8")
+  const e = (await client.callTool({ name: "edit_diagram", arguments: { diagram: a.sheet, add_nodes: [{ id: "bq", kind: "bigquery", title: "BigQuery" }], add_connections: [{ from: "run", to: "bq" }] } })).structuredContent as { file: string }
+  assert.equal(e.file, a.file, "the edit writes its own diagram's file")
+  assert.match(readFileSync(a.file, "utf8"), /BigQuery/)
+  assert.equal(readFileSync(b.file, "utf8"), before, "the other diagram's file is untouched")
+})
