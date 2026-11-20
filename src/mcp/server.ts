@@ -95,7 +95,7 @@ export function createServer(opts: ServerOptions = {}) {
     delete (sc as Record<symbol, unknown>)[VIEW_DATA]
     if (result.isError || !sc.stats) return { ...result, structuredContent: sc }
     const { save: _s, workspace: _w, repository: _r, ...args } = (sc.diagram ?? input) as Record<string, unknown>
-    const view = full ?? Object.fromEntries(["xml", "layout", "positions", "routes"].filter((k) => sc[k] !== undefined).map((k) => [k, sc[k]]))
+    const view = full ?? Object.fromEntries(["xml", "layout", "final", "positions", "routes"].filter((k) => sc[k] !== undefined).map((k) => [k, sc[k]]))
     const key = keepSheet(tool, args, id, { ...view }, memo)
     const [first, ...rest] = result.content
     // The id leads the text: hosts that shorten earlier results to a short preview must still show it, or the model
@@ -103,7 +103,8 @@ export function createServer(opts: ServerOptions = {}) {
     return {
       ...result,
       content: [{ ...first, text: `Diagram id: ${key} (call edit_diagram with it for any follow-up change). ${first.text}` }, ...rest],
-      structuredContent: { ...sc, sheet: key },
+      // The arguments as drawn (validated: unknown fields dropped), so the live view finishes with exactly the file's diagram.
+      structuredContent: { ...sc, sheet: key, ...(liveView() || sc.diagram ? { diagram: args } : {}) },
     }
   }
   const tool = <S extends z.ZodRawShape, A = z.infer<z.ZodObject<S>>>(name: string, cfg: { inputSchema: S } & Record<string, unknown>, run: (args: A) => Promise<Drawn>, as = name) => {
@@ -429,13 +430,14 @@ export function createServer(opts: ServerOptions = {}) {
         return failure("Edit failed", new Error(`the changed diagram is not valid for ${sheet.tool} (${issues})`))
       }
       const drawn = await drawing(() => drawer.run(parsed.data as never), sheet.memo, turned)
-      const result = remembered(drawn.result, sheet.tool, args, drawn.memo, diagram.trim())
+      const { save: _s, workspace: _w, ...rendered } = parsed.data as Record<string, unknown>
+      const result = remembered(drawn.result, sheet.tool, rendered, drawn.memo, diagram.trim())
       if (result.isError) return result
       const [first, ...rest] = result.content
       return {
         ...result,
         content: [{ ...first, text: `${summary} ${first.text}${note}` }, ...rest],
-        structuredContent: { ...result.structuredContent, diagram: args, edit: kept },
+        structuredContent: { ...result.structuredContent, edit: kept },
       }
     } catch (error) {
       return failure("Edit failed", error)

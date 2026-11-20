@@ -57,6 +57,14 @@ let placer: Placer | undefined
 export function usePlacer(p: Placer | undefined) { placer = p }
 
 export interface SerialLayout { zones: [string, LaidZone][]; cards: [string, Box][]; frames: Layout["frames"]; place: [string, Placement][]; routes?: [string, Pt[]][]; labels?: [string, Pt][] }
+// A drawn scene as a layout to restore exactly: every box and route as it ended up.
+export const sceneLayout = (s: Scene): SerialLayout => ({
+  zones: s.zones.map(({ id, ...z }) => [id, { ...z, box: [...z.box] as Box }]),
+  cards: s.cards.map((c) => [c.node.id, [...c.box] as Box]),
+  frames: s.frames.map((f) => ({ platform: f.platform, box: [...f.box] as Box })),
+  place: s.cards.map((c) => [c.node.id, { zone: c.zone, zoneId: c.zoneId, icon: c.icon, platform: c.platform }]),
+  routes: s.edges.map((e) => [e.id, e.points.map((p) => [...p] as Pt)]),
+})
 export const serialiseLayout = (l: Layout): SerialLayout => ({
   zones: [...l.zones].map(([id, z]) => [id, { ...z, box: [...z.box] as Box }]),
   cards: [...l.cards].map(([id, b]) => [id, [...b] as Box]),
@@ -69,13 +77,21 @@ export function restoreLayout(s: SerialLayout, facts?: Facts): Layout {
   const keep = facts ? new Set(facts.nodes.map((n) => n.id)) : null
   const cards = new Map(s.cards.filter(([id]) => !keep || keep.has(id)).map(([id, b]) => [id, [...b] as Box]))
   const place = new Map(s.place.filter(([id]) => cards.has(id)))
-  // While cards are still being revealed, only groups that hold (or contain groups that hold) a visible card are shown.
+  // While cards are still being revealed, a group waiting for its first card stays hidden; a group that holds a visible
+  // card (or a group inside it does), or that the diagram leaves empty, is shown.
   const zones = new Map(s.zones.map(([id, z]) => [id, { ...z, box: [...z.box] as Box }]))
   const used = new Set<string>()
-  for (const p of place.values()) {
-    let z: string | undefined = p.zoneId
+  const mark = (zone: string | undefined) => {
+    let z = zone
     while (z && !used.has(z)) { used.add(z); z = zones.get(z)?.parent }
   }
+  for (const p of place.values()) mark(p.zoneId)
+  const awaited = new Set<string>()
+  for (const [, p] of s.place) {
+    let z: string | undefined = p.zoneId
+    while (z && !awaited.has(z)) { awaited.add(z); z = zones.get(z)?.parent }
+  }
+  for (const id of zones.keys()) if (!awaited.has(id)) mark(id)
   for (const id of [...zones.keys()]) if (!used.has(id)) zones.delete(id)
   const routes = s.routes ? new Map(s.routes.map(([id, pts]) => [id, pts.map((p) => [...p] as Pt)])) : undefined
   const labels = s.labels ? new Map(s.labels.map(([id, p]) => [id, [...p] as Pt])) : undefined

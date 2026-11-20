@@ -27,30 +27,38 @@ ui.fullscreen.onclick = async () => {
 const fileName = () => (state.current?.facts.title || "architecture").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".drawio"
 // The server's draw.io file (or, after a drag, the view's own); if neither arrived, the diagram exactly as it is shown.
 const exportXml = () => state.xml || (state.current?.cards.length ? buildDrawio(state.current).xml : "")
-ui.download.onclick = async () => {
-  const xml = exportXml()
-  if (!xml) return
-  try {
-    const res = await app.downloadFile({ contents: [{ type: "resource", resource: { uri: `file:///${fileName()}`, mimeType: "application/vnd.jgraph.mxfile", text: xml } }] })
-    if (res.isError) throw new Error("denied")
-    tick(`⬇ <b>${escHtml(fileName())}</b> downloaded`)
-  } catch {
-    const a = document.createElement("a")
-    a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" }))
-    a.download = fileName()
-    a.click()
-  }
-}
-ui.open.onclick = async () => {
-  const xml = exportXml()
-  if (!xml) return
+async function openInDrawio(xml: string) {
   const bytes = new TextEncoder().encode(encodeURIComponent(xml))
   const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))
   const buf = new Uint8Array(await new Response(stream).arrayBuffer())
   let bin = ""
   for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000))
   const url = `https://app.diagrams.net/?title=${encodeURIComponent(fileName())}#R${encodeURIComponent(btoa(bin))}`
-  try { await app.openLink({ url }) } catch { tick("Host blocked opening the link") }
+  try { await app.openLink({ url }); return true } catch { tick("Host blocked opening the link"); return false }
+}
+ui.download.onclick = async () => {
+  const xml = exportXml()
+  if (!xml) return
+  if (app.getHostCapabilities()?.downloadFile) {
+    try {
+      const res = await app.downloadFile({ contents: [{ type: "resource", resource: { uri: `file:///${fileName()}`, mimeType: "application/vnd.jgraph.mxfile", text: xml } }] })
+      if (!res.isError) { tick(`⬇ <b>${escHtml(fileName())}</b> downloaded`); return }
+    } catch { /* fall through */ }
+  }
+  // Outside a host the page can save the file itself. A host that embeds the view without file downloads sandboxes it,
+  // where a download link does nothing: open the same diagram in draw.io instead, which saves it as .drawio.
+  if (window.parent === window) {
+    const a = document.createElement("a")
+    a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" }))
+    a.download = fileName()
+    a.click()
+    return
+  }
+  if (await openInDrawio(xml)) tick(`This chat cannot save files: opened in draw.io, save it there with <b>File › Save as</b>`)
+}
+ui.open.onclick = async () => {
+  const xml = exportXml()
+  if (xml) await openInDrawio(xml)
 }
 
 fitTo(null, true)

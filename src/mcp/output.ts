@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { deflateRawSync } from "node:zlib"
 import { config } from "../config.js"
-import { diagramKind, normaliseFacts, renderDiagram, type DiagramInput, type Positions, type Pt, type Reroute } from "../engine/index.js"
+import { diagramKind, normaliseFacts, renderDiagram, sceneLayout, type DiagramInput, type Positions, type Pt, type Reroute } from "../engine/index.js"
 import "../engine/server-setup.js"
 
 export function diagramsNetLink(title: string, xml: string): string {
@@ -132,6 +132,8 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
   const viewData: ViewData = {
     xml,
     ...(scene.placed ? { layout: scene.placed } : {}),
+    // Kept earlier positions: the exact boxes and lines as drawn, for the view to finish with (not used while streaming).
+    ...(pinned && !scene.placed ? { final: sceneLayout(scene) } : {}),
     ...(pinned ? { positions: placedAt(scene), routes: Object.fromEntries(scene.edges.map((e) => [e.id, e.points])) } : {}),
   }
   const frames = scene.frames.map((f) => f.title).join(", ")
@@ -174,7 +176,7 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
 
 // Symbol-keyed, so object spreads carry it to the server's diagram store but it is never serialised into the result.
 export const VIEW_DATA: unique symbol = Symbol("drawman.viewData")
-export type ViewData = { xml: string; layout?: unknown; positions?: Positions; routes?: Record<string, Pt[]> }
+export type ViewData = { xml: string; layout?: unknown; final?: unknown; positions?: Positions; routes?: Record<string, Pt[]> }
 
 export const failure = (prefix: string, error: unknown) =>
   ({ isError: true, content: [{ type: "text" as const, text: `${prefix}: ${(error as Error).message}` }] })

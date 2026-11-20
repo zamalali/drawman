@@ -91,6 +91,9 @@ export function diagramKind(input: DiagramInput | undefined): DiagramKind {
   if (has("entities")) return "er"
   if (isFlowInput(input)) return "flowchart"
   if (has("groups")) return "general"
+  // create_diagram, also without groups: its nodes carry an icon at most, while architecture nodes always have a kind.
+  const nodes = has("nodes") ? ((input as Record<string, unknown>).nodes as unknown[]).filter((n) => !!n && typeof n === "object") : []
+  if (nodes.length && !nodes.some((n) => "kind" in (n as object))) return "general"
   return "architecture"
 }
 

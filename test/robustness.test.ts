@@ -9,7 +9,10 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js"
 import { createServer } from "../src/mcp/server.js"
 import { config } from "../src/config.js"
-import { INPUT_KEYS, diagramKind, type DiagramInput } from "../src/engine/index.js"
+import { INPUT_KEYS, buildDrawio, buildScene, diagramKind, normaliseFacts, usedContainers, type DiagramInput, type Positions, type Pt, type SerialLayout } from "../src/engine/index.js"
+
+const places = (xml: string) => new Map([...xml.matchAll(/<mxCell id="([^"]+)"[^>]*vertex="1"[^>]*>\s*<mxGeometry x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)]
+  .map((m) => [m[1], m.slice(2, 6).join(",")]))
 
 config.workspaceRoots = []
 const UI = { extensions: { "io.modelcontextprotocol/ui": { mimeTypes: ["text/html;profile=mcp-app"] } } }
@@ -105,6 +108,14 @@ for (const [tool, base] of CASES) {
         assert.ok(!r.isError, `${tool} round ${round} step ${step} ${JSON.stringify(delta).slice(0, 300)}: ${text(r)}`)
         assert.ok(text(r).slice(0, 160).includes(`Diagram id: ${sc.sheet}`), "the id stays in the preview")
         args = (r.structuredContent as { diagram: Record<string, unknown> }).diagram
+        // The view rebuilds an edit from the result as stream.ts does; it must show what the file contains.
+        const res = r.structuredContent as { xml: string; positions?: Positions; routes?: Record<string, Pt[]>; layout?: SerialLayout; final?: SerialLayout }
+        const containers = usedContainers(args as DiagramInput)
+        const kept = res.routes ? { moved: new Set<string>(), previous: new Map(Object.entries(res.routes)) } : undefined
+        const scene = buildScene(normaliseFacts({ ...args, ...(containers ? { groups: containers } : {}) } as DiagramInput, false), res.final ? {} : { ...(res.positions ?? {}) }, kept, res.final ?? res.layout)
+        const want = places(res.xml), got = places(buildDrawio(scene).xml)
+        const diff = [...new Set([...want.keys(), ...got.keys()])].filter((k) => want.get(k) !== got.get(k)).slice(0, 4).map((k) => `${k}: file ${want.get(k)} view ${got.get(k)}`)
+        assert.deepEqual(diff, [], `${tool} round ${round} step ${step} ${JSON.stringify(delta).slice(0, 200)}: the view and the file differ`)
       }
       const shown = (await client.callTool({ name: "show_diagram", arguments: { diagram: sc.sheet } })) as CallToolResult
       assert.ok(!shown.isError, text(shown))

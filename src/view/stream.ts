@@ -178,12 +178,12 @@ function useServerLayout(sc: Shown, replace: boolean) {
 }
 // The server's final drawing of a diagram it keeps (show_diagram is app-only, so this costs the model nothing). Gives up
 // after a few seconds: the view then exports what it shows (see view.ts).
-async function fetchDrawing(id: string): Promise<Pick<Shown, "layout" | "positions" | "routes"> & { xml?: string }> {
+async function fetchDrawing(id: string): Promise<Pick<Shown, "diagram" | "layout" | "positions" | "routes"> & { xml?: string; final?: SerialLayout }> {
   const call = app.callServerTool({ name: "show_diagram", arguments: { diagram: id } })
   const r = await Promise.race([call, new Promise<null>((done) => setTimeout(() => done(null), 4000))]).catch(() => null)
-  const v = r && !r.isError ? r.structuredContent as (Shown & { xml?: unknown }) | undefined : undefined
+  const v = r && !r.isError ? r.structuredContent as (Shown & { xml?: unknown; final?: SerialLayout }) | undefined : undefined
   if (typeof v?.xml !== "string" || !v.xml) return {}
-  return { xml: v.xml, ...(v.layout ? { layout: v.layout } : {}), ...(v.positions ? { positions: v.positions } : {}), ...(v.routes ? { routes: v.routes } : {}) }
+  return { xml: v.xml, ...(v.diagram ? { diagram: v.diagram } : {}), ...(v.layout ? { layout: v.layout } : {}), ...(v.final ? { final: v.final } : {}), ...(v.positions ? { positions: v.positions } : {}), ...(v.routes ? { routes: v.routes } : {}) }
 }
 
 app.ontoolinputpartial = ({ arguments: args }) => {
@@ -207,10 +207,14 @@ app.ontoolresult = async (result) => {
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
     return
   }
-  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]>; edit?: { nodes: number; edges: number }; sheet?: string; file?: string } | undefined
-  // Hosts the server takes for a terminal (e.g. a Copilot CLI session shown in VS Code) get a result without the drawing,
-  // which the server saved to the project instead. Fetch it, so the canvas shows the same final layout and can export it.
-  if (sc && !sc.xml && sc.sheet) Object.assign(sc, await fetchDrawing(sc.sheet))
+  const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; final?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]>; edit?: { nodes: number; edges: number }; sheet?: string; file?: string } | undefined
+  // Hosts the server takes for a terminal (e.g. a Copilot CLI session shown in VS Code) get a result without the drawing
+  // or the drawn arguments, to keep the model's context small. Fetch what is missing, so the canvas shows the same final
+  // diagram and layout and can export it.
+  if (sc?.sheet && (!sc.xml || !sc.diagram)) {
+    const xml = sc.xml
+    Object.assign(sc, await fetchDrawing(sc.sheet), xml ? { xml } : {})
+  }
   if (sc?.file) tick(`💾 Saved <b>${escHtml(sc.file.split(/[\\/]/).pop() ?? sc.file)}</b> in the project`)
   state.xml = state.serverXml = sc?.xml ?? ""
   resultStats = sc?.stats
@@ -220,6 +224,7 @@ app.ontoolresult = async (result) => {
   if (sc?.edit && sc.diagram) {
     resultReady = true
     useServerLayout(sc, true)
+    if (sc.final) { state.layout = sc.final; state.positions = {} }
     shownNodes = sc.edit.nodes
     shownEdges = sc.edit.edges
     quietly(() => receive(sc.diagram!, true))
@@ -227,7 +232,12 @@ app.ontoolresult = async (result) => {
     if (!beat) step()
     return
   }
+  // The arguments as the server drew them (validated: unknown fields dropped). Finishing with those, not with the raw
+  // stream, makes the canvas exactly the downloadable file.
+  if (sc?.diagram && latest && !sc.analysis) { latest = sc.diagram; inputFinal = true }
   if (sc?.positions || sc?.routes || sc?.layout) useServerLayout(sc, false)
+  // The exact boxes as drawn already hold the kept positions; applying those again would regrow the groups.
+  if (sc?.final) { state.layout = sc.final; state.positions = {} }
   if (sc?.layout || sc?.positions) draw()
   if (sc?.analysis) showAnalysis(sc.analysis)
   if (sc?.handoff) {

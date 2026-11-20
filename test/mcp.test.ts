@@ -93,6 +93,16 @@ test("a view shown by a host taken for a terminal (Copilot CLI in VS Code) fetch
   assert.equal(gsc.layout, undefined)
   const gview = (await client.callTool({ name: "show_diagram", arguments: { diagram: gsc.sheet } })).structuredContent as { layout?: unknown }
   assert.ok(gview.layout, "grouped diagrams come with the server's final layout, as in a host that shows the view")
+  // An edit there: the result stays small, and the drawing the view fetches is the edited one.
+  const edited = (await client.callTool({ name: "edit_diagram", arguments: { diagram: sc.sheet, add_nodes: [{ id: "bq", kind: "bigquery", title: "BigQuery" }], add_connections: [{ from: "run", to: "bq" }] } })) as CallToolResult
+  assert.ok(!edited.isError, JSON.stringify(edited.content))
+  const ewire = JSON.parse(JSON.stringify(edited.structuredContent)) as Record<string, unknown>
+  assert.equal(ewire.diagram, undefined, "no diagram in the model's context")
+  const after = (await client.callTool({ name: "show_diagram", arguments: { diagram: sc.sheet } })).structuredContent as { diagram: { nodes: { id: string }[] } }
+  assert.ok(after.diagram.nodes.some((n) => n.id === "bq"), "the view fetches the edited diagram")
+  const stream = readFileSync(new URL("../src/view/stream.ts", import.meta.url), "utf8")
+  assert.match(stream, /\.\.\.\(v\.diagram \? \{ diagram: v\.diagram \} : \{\}\)/, "and adopts it")
+  assert.match(stream, /if \(sc\?\.sheet && \(!sc\.xml \|\| !sc\.diagram\)\)/, "also when the result carried the xml but not the diagram")
   await client.callTool({ name: "remember_layout", arguments: { diagram: sc.sheet, positions: { lb: [400, 300] } } })
   const moved = (await client.callTool({ name: "show_diagram", arguments: { diagram: sc.sheet } })) as CallToolResult
   assert.equal((moved.structuredContent as { xml?: string }).xml, undefined, "after a drag the stored file no longer matches the view")
@@ -102,7 +112,7 @@ test("hosts with the live view still get the whole drawing in the result, unchan
   const client = await connect(UI)
   const r = (await client.callTool({ name: "create_architecture_diagram", arguments: sample })) as CallToolResult
   const wire = JSON.parse(JSON.stringify(r.structuredContent)) as Record<string, unknown>
-  assert.deepEqual(Object.keys(wire).sort(), ["sheet", "stats", "title", "xml"])
+  assert.deepEqual(Object.keys(wire).sort(), ["diagram", "sheet", "stats", "title", "xml"])
   const shown = (await client.callTool({ name: "show_diagram", arguments: { diagram: String(wire.sheet) } })) as CallToolResult
   assert.equal((shown.structuredContent as { xml: string }).xml, wire.xml)
 })
