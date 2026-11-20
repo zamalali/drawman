@@ -75,3 +75,9 @@ test("Download is offered only where the view can save a file; otherwise Open in
   assert.match(view, /applyContext\(app\.getHostContext\(\)\); exportButtons\(\)/, "decided once connected, when the host's capabilities are known")
   assert.doesNotMatch(view.slice(view.indexOf("ui.download.onclick"), view.indexOf("ui.open.onclick")), /openInDrawio/, "Download never just opens draw.io")
 })
+// An edit that removes every container turns a grouped diagram into a plain architecture diagram: the layout the view
+// fetched while the edit streamed belongs to the old arrangement and must not be kept.
+test("an edit result replaces any layout fetched while it streamed", () => {
+  const edit = onResult.slice(onResult.indexOf("if (sc?.edit && sc.diagram)"))
+  assert.match(edit, /useServerLayout\(sc, true\)[\s\S]*?state\.layout = sc\.final \?\? sc\.layout \?\? null/)
+})

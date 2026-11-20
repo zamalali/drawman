@@ -224,7 +224,10 @@ app.ontoolresult = async (result) => {
   if (sc?.edit && sc.diagram) {
     resultReady = true
     useServerLayout(sc, true)
-    if (sc.final) { state.layout = sc.final; state.positions = {} }
+    // The edit's own layout, or none: a layout fetched while it streamed may belong to a different arrangement (an
+    // edit that removes every container draws a plain architecture diagram).
+    state.layout = sc.final ?? sc.layout ?? null
+    if (sc.final) state.positions = {}
     shownNodes = sc.edit.nodes
     shownEdges = sc.edit.edges
     quietly(() => receive(sc.diagram!, true))

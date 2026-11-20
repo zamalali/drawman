@@ -168,7 +168,7 @@ Because the hard part is not the model's job, mid-size models produce the same q
 
 | Tool | Purpose |
 | --- | --- |
-| `create_architecture_diagram` | title, subtitle, nodes `{id, kind, title, detail, status, group?}`, interfaces `{from, to, label, protocol, description}`; optional `containers` `{id, title, parent?}` only when the request names them (VPC, subnets, clusters, namespaces), otherwise platform frames and zones are drawn automatically |
+| `create_architecture_diagram` | title, subtitle, nodes `{id, kind, title, detail, status, group?}`, interfaces `{from, to, label, protocol, description}`; optional `containers` `{id, title, parent?}` only when the request names them (VPC, subnets, clusters, namespaces, regions), otherwise platform frames and zones are drawn automatically, left to right; with containers an optional `direction` (`LR` horizontal, `TB` vertical) |
 | `create_flowchart` | flowcharts, processes, approval flows, decision trees: real flowchart shapes (start/end, process, decision, data, document, database, sub-process), Yes/No branches, optional swimlanes, top-down or left-right |
 | `create_sequence_diagram` | API / auth / payment call flows: native UML lifelines, activation bars, sync / async / return messages, `alt` `opt` `loop` `par` fragments, notes |
 | `create_state_diagram` | lifecycles and statuses: initial / final / choice pseudo-states, `event [guard] / action` transitions, entry / exit activities |
@@ -176,7 +176,7 @@ Because the hard part is not the model's job, mid-size models produce the same q
 | `create_er_diagram` | database schemas: tables with typed columns, PK / FK, crow's-foot cardinalities |
 | `create_diagram` | any other connected diagram (ML models, concept maps, org charts): optional groups `{id, title, parent?}` that can nest, nodes (a node without a group stays outside every group), interfaces |
 | `analyze_repository` | `"."`, a workspace folder, `owner/repo` or an https git URL; optional `ref`, `focus` |
-| `edit_diagram` | follow-up changes to a diagram already drawn: its id plus only what changes (`add_nodes`, `add_connections`, `add_groups`, `update`, `remove`). Everything already drawn, including shapes the user dragged, keeps its place and lines; a new node joins its zone and what sits below slides down to make room. A follow-up takes seconds and a few hundred tokens instead of a full redraw |
+| `edit_diagram` | follow-up changes to a diagram already drawn: its id plus only what changes (`add_nodes`, `add_connections`, `add_groups`, `update`, `remove`, `direction`). Everything already drawn, including shapes the user dragged, keeps its place and lines; a new node joins its zone and what sits below slides down to make room. A new `direction` (`LR` horizontal, `TB` vertical) lays the diagram out afresh, as does a change the earlier arrangement cannot hold. Ids that are not in the diagram are skipped and named. A follow-up takes seconds and a few hundred tokens instead of a full redraw |
 
 All of them accept `workspace` (the absolute project path), which agents that start servers outside the project (Copilot
 CLI) pass so files are read from, and saved to, the right folder.

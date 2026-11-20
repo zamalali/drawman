@@ -139,6 +139,14 @@ test("kind hints match at the start of a word", () => {
   assert.equal(normaliseKind("identity", "Microsoft Entra ID", ""), "az_entra_id")
   assert.equal(normaliseKind("", "PostgreSQL 16", ""), "postgres", "a hint still matches the start of a longer word")
   assert.equal(normaliseKind("object_storage", "Cloud Storage", ""), "object_storage", "an explicit kind is kept")
+  // Kinds models make up with hyphens resolve as in earlier versions.
+  assert.equal(normaliseKind("message-queue", "Order events", ""), "message_broker")
+  assert.equal(normaliseKind("event-stream", "Clicks", ""), "message_broker")
+  assert.equal(normaliseKind("rest-api", "Orders", ""), "container_service")
+  assert.equal(normaliseKind("web-frontend", "Shop", ""), "web_app")
+  assert.equal(normaliseKind("batch-job", "Billing run", ""), "background_worker")
+  assert.equal(normaliseKind("ms-sql", "ERP", ""), "database")
+  assert.equal(normaliseKind("serverless-function", "Thumbnail", ""), "background_worker")
 })
 // The live view draws every partial input; what kind of diagram it is must not flip while it streams.
 test("streaming input keeps its kind: containers group from the first card, a direction alone is no flowchart", () => {
