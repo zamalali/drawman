@@ -3,6 +3,14 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.7] - 2026-11-25
+
+### Added
+
+- The live view follows the host's dark theme, including theme changes while it is open. The diagram keeps its
+  colours as dark tints, icons keep their brand colours, and the file opened in or downloaded for draw.io stays the
+  usual light diagram.
+
 ## [0.2.6] - 2026-11-20
 
 ### Added
