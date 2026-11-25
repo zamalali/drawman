@@ -131,4 +131,15 @@ text { font-family: "Segoe UI", Helvetica, Arial, sans-serif; }
 .insights .ev { margin: 4px 0 0; padding-left: 16px; max-height: 140px; overflow-y: auto; }
 .insights.collapsed .findings, .insights.collapsed details, .insights.collapsed .chips { display: none; }
 
+/* Dark host theme: the drawing keeps draw.io's light palette (so it matches the exported file) and is shown with its
+   lightness flipped and hues kept; icons are flipped back so brand logos keep their colours. */
+:root[data-theme="dark"] #stage { background: #161616; }
+:root[data-theme="dark"] #canvas { filter: invert(.9) hue-rotate(180deg); }
+:root[data-theme="dark"] #canvas image { filter: invert(1) hue-rotate(180deg); }
+:root[data-theme="dark"] .status.building { color: #fdd08a; background: #3a2a12; }
+:root[data-theme="dark"] .status.done { color: #81c995; background: #1e3325; }
+:root[data-theme="dark"] .status.error { color: #f28b82; background: #3c1f1e; }
+:root[data-theme="dark"] .insights .chip { background: var(--color-background-secondary); }
+:root[data-theme="dark"] .ticker li { background: rgba(60,64,67,.9); }
+
 [hidden] { display: none !important; }
