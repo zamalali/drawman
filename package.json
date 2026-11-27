@@ -1,6 +1,6 @@
 {
   "name": "drawman",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "draw.io on steroids. Much cheaper, extremely fast, high-quality draw.io diagrams for AI coding agents: architecture, flowcharts, sequence, state, UML class and ER diagrams, plus repository analysis. MCP server + MCP App.",
   "keywords": [
     "mcp",

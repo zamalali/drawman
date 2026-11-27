@@ -3,6 +3,30 @@
 All notable changes to Drawman. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.8] - 2026-11-27
+
+### Fixed
+
+- Large diagrams (dozens of components and connections) made the page stop responding while they were drawn, and
+  again when a fresh copy of the view opened (a side panel, fullscreen, a reload). The view re-routed every line on
+  each revealed item; it now keeps the lines already on screen and routes only new ones, and every result carries the
+  exact final layout, so a fresh view shows the diagram at once. For a 66-component, 89-interface diagram the page was
+  blocked for over two minutes in total; it is now a fraction of a second.
+- After the model finished writing, a large diagram kept assembling at the drawing pace for many seconds. What is left
+  is now caught up in about a second.
+- A sequence diagram streamed into the live view started with an invalid size (before its first participant), which
+  the browser reported as an error.
+
+### Changed
+
+- Line routing is about two and a half times faster with the same routes, so large diagrams also come back from the
+  server sooner.
+- The progress lines fade out shortly after a diagram is ready, leaving a clean canvas. A view that did not watch
+  the drawing (a side panel, a reload) shows none.
+- The Flow button is called Animation and is off until it is turned on.
+- The toolbar and overlays keep clear of the host's safe-area insets (`hostContext.safeAreaInsets`), for hosts that
+  draw their own controls over the view.
+
 ## [0.2.7] - 2026-11-25
 
 ### Added
