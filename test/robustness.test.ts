@@ -125,3 +125,23 @@ for (const [tool, base] of CASES) {
     }
   })
 }
+
+// A host may open a fresh copy of the view after the call (fullscreen, a side panel, a reload): it gets the result only
+// and must show the file's diagram without routing anything itself, which takes seconds on large diagrams.
+test("every first drawing's result rebuilds in a fresh view exactly as the file, from its final layout", async () => {
+  const [a, b] = InMemoryTransport.createLinkedPair()
+  await createServer().connect(b)
+  const client = new Client({ name: "fresh-view", version: "1" }, { capabilities: UI as never })
+  await client.connect(a)
+  for (const [tool, base] of CASES) {
+    const r = (await client.callTool({ name: tool, arguments: base })) as CallToolResult
+    assert.ok(!r.isError, `${tool}: ${text(r)}`)
+    const res = r.structuredContent as { xml: string; diagram: Record<string, unknown>; final?: SerialLayout }
+    if (diagramKind(res.diagram as DiagramInput) === "sequence") { assert.equal(res.final, undefined, "sequence diagrams lay themselves out"); continue }
+    assert.ok(res.final?.routes, `${tool}: the result carries the drawn boxes and lines`)
+    const containers = usedContainers(res.diagram as DiagramInput)
+    const scene = buildScene(normaliseFacts({ ...res.diagram, ...(containers ? { groups: containers } : {}) } as DiagramInput, false), {}, undefined, res.final)
+    assert.equal(buildDrawio(scene).xml, res.xml, `${tool}${base.containers ? " with containers" : ""}: the fresh view draws the file`)
+  }
+  await client.close()
+})

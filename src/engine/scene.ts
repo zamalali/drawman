@@ -22,6 +22,8 @@ export interface Layout {
   // Edge routes that came with the placement (compound layout); edges without one are routed by the A* router.
   routes?: Map<string, Pt[]>
   labels?: Map<string, Pt>
+  // Exact label positions of a drawn scene (sceneLayout): restored as they are, so the view draws the file's labels.
+  labelPos?: Map<string, number>
 }
 export interface Edge extends Interface { points: Pt[]; labelPos: number }
 export interface Scene {
@@ -56,7 +58,7 @@ export type Placer = (facts: Facts) => Layout | undefined
 let placer: Placer | undefined
 export function usePlacer(p: Placer | undefined) { placer = p }
 
-export interface SerialLayout { zones: [string, LaidZone][]; cards: [string, Box][]; frames: Layout["frames"]; place: [string, Placement][]; routes?: [string, Pt[]][]; labels?: [string, Pt][] }
+export interface SerialLayout { zones: [string, LaidZone][]; cards: [string, Box][]; frames: Layout["frames"]; place: [string, Placement][]; routes?: [string, Pt[]][]; labels?: [string, Pt][]; labelPos?: [string, number][] }
 // A drawn scene as a layout to restore exactly: every box and route as it ended up.
 export const sceneLayout = (s: Scene): SerialLayout => ({
   zones: s.zones.map(({ id, ...z }) => [id, { ...z, box: [...z.box] as Box }]),
@@ -64,6 +66,7 @@ export const sceneLayout = (s: Scene): SerialLayout => ({
   frames: s.frames.map((f) => ({ platform: f.platform, box: [...f.box] as Box })),
   place: s.cards.map((c) => [c.node.id, { zone: c.zone, zoneId: c.zoneId, icon: c.icon, platform: c.platform }]),
   routes: s.edges.map((e) => [e.id, e.points.map((p) => [...p] as Pt)]),
+  labelPos: s.edges.map((e) => [e.id, e.labelPos]),
 })
 export const serialiseLayout = (l: Layout): SerialLayout => ({
   zones: [...l.zones].map(([id, z]) => [id, { ...z, box: [...z.box] as Box }]),
@@ -95,7 +98,8 @@ export function restoreLayout(s: SerialLayout, facts?: Facts): Layout {
   for (const id of [...zones.keys()]) if (!used.has(id)) zones.delete(id)
   const routes = s.routes ? new Map(s.routes.map(([id, pts]) => [id, pts.map((p) => [...p] as Pt)])) : undefined
   const labels = s.labels ? new Map(s.labels.map(([id, p]) => [id, [...p] as Pt])) : undefined
-  return { zones, cards, frames: s.frames.map((f) => ({ ...f, box: [...f.box] as Box })), place, ...(routes ? { routes } : {}), ...(labels ? { labels } : {}) }
+  const labelPos = s.labelPos ? new Map(s.labelPos) : undefined
+  return { zones, cards, frames: s.frames.map((f) => ({ ...f, box: [...f.box] as Box })), place, ...(routes ? { routes } : {}), ...(labels ? { labels } : {}), ...(labelPos ? { labelPos } : {}) }
 }
 
 const zoneIdOf = (zone: ZoneKey, platform: Platform) => (platform === "neutral" ? zone : `${platform}_${zone}`)
@@ -414,12 +418,13 @@ export function buildScene(facts: Facts, positions?: Positions, reroute?: Rerout
   const edges: Edge[] = facts.interfaces.filter((e) => routes.has(e.id) && cards.has(e.from) && cards.has(e.to)).map((e) => {
     const points = routes.get(e.id)!
     const near = facts.flow && e.label && facts.nodes.find((n) => n.id === e.from)?.shape === "decision"
+    const exact = preset.has(e.id) ? laid.labelPos?.get(e.id) : undefined
     const reserved = preset.has(e.id) ? laid.labels?.get(e.id) : undefined
-    return { ...e, points, labelPos: near ? labelNear(points, 18 + textWidth(e.label, 11) / 2) : reserved ? relAt(points, reserved) : labelPos(points) }
+    return { ...e, points, labelPos: exact ?? (near ? labelNear(points, 18 + textWidth(e.label, 11) / 2) : reserved ? relAt(points, reserved) : labelPos(points)) }
   })
   const legendRows = facts.flow ? 0 : edges.length
   placeLabels(edges, [...cards.values()], decisions ?? new Set(), (e) => edgeText(e, !!facts.flow), facts.flow ? 11 : 10,
-    new Set(edges.filter((e) => preset.has(e.id) && laid.labels?.has(e.id)).map((e) => e.id)))
+    new Set(edges.filter((e) => preset.has(e.id) && (laid.labels?.has(e.id) || laid.labelPos?.has(e.id))).map((e) => e.id)))
   return {
     facts,
     zones: [...zones].map(([id, z]) => ({ id, key: z.key, platform: z.platform, title: z.title, fill: z.fill, stroke: z.stroke, box: z.box, ...(z.parent ? { parent: z.parent } : {}) })),

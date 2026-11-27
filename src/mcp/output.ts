@@ -137,8 +137,9 @@ export function summarise(args: DiagramInput, save: boolean, withXml = true) {
   const viewData: ViewData = {
     xml,
     ...(scene.placed ? { layout: scene.placed } : {}),
-    // Kept earlier positions: the exact boxes and lines as drawn, for the view to finish with (not used while streaming).
-    ...(pinned && !scene.placed ? { final: sceneLayout(scene) } : {}),
+    // The exact boxes and lines as drawn, so the view finishes with the file's diagram without routing anything itself
+    // (routing a large diagram takes seconds, and a host may open a fresh copy of the view after the call).
+    ...(facts.sequence ? {} : { final: sceneLayout(scene) }),
     ...(pinned ? { positions: placedAt(scene), routes: Object.fromEntries(scene.edges.map((e) => [e.id, e.points])) } : {}),
   }
   const frames = scene.frames.map((f) => f.title).join(", ")

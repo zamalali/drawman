@@ -113,7 +113,7 @@ test("hosts with the live view still get the whole drawing in the result, unchan
   const client = await connect(UI)
   const r = (await client.callTool({ name: "create_architecture_diagram", arguments: sample })) as CallToolResult
   const wire = JSON.parse(JSON.stringify(r.structuredContent)) as Record<string, unknown>
-  assert.deepEqual(Object.keys(wire).sort(), ["diagram", "sheet", "stats", "title", "xml"])
+  assert.deepEqual(Object.keys(wire).sort(), ["diagram", "final", "sheet", "stats", "title", "xml"])
   const shown = (await client.callTool({ name: "show_diagram", arguments: { diagram: String(wire.sheet) } })) as CallToolResult
   assert.equal((shown.structuredContent as { xml: string }).xml, wire.xml)
 })
