@@ -94,3 +94,9 @@ test("developer diagrams render fast", () => {
     assert.ok(performance.now() - t0 < 1500, name)
   }
 })
+
+// The live view draws a sequence diagram from its first streamed fragment, before any participant is complete.
+test("a sequence diagram without participants yet has a finite size", () => {
+  const { scene } = renderDiagram({ ...cases.sequence, participants: [], messages: [] }, true)
+  assert.ok(Number.isFinite(scene.width) && Number.isFinite(scene.height), `size ${scene.width} x ${scene.height}`)
+})

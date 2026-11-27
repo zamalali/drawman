@@ -157,7 +157,8 @@ export function layoutSequence(facts: Facts): Scene {
   for (const [id, stack] of open) while (stack.length) close(id, y)
   const bottom = y + 20
   const lifelines = parts.map((p) => ({ id: p.id, x: xs.get(p.id)!, top: TOP + HEAD_H, bottom }))
-  const right = Math.max(...cards.map((c) => c.box[0] + c.box[2]), ...fragments.map((f) => f.box[0] + f.box[2]), ...notes.map((n) => n.box[0] + n.box[2]))
+  // At least the left margin: before the first participant is placed (the live view's first frame) there is nothing.
+  const right = Math.max(60, ...cards.map((c) => c.box[0] + c.box[2]), ...fragments.map((f) => f.box[0] + f.box[2]), ...notes.map((n) => n.box[0] + n.box[2]))
   const w = right + 60
   return {
     facts, zones: [], frames: [], cards, edges, width: w, height: bottom + 40, legend: [40, bottom + 40, w - 80, 0], unrouted: [],
