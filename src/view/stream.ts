@@ -1,6 +1,6 @@
 // Turns streamed tool input into a progressively built scene and finishes it when the result arrives.
 import { INPUT_KEYS, buildScene, checkLayout, diagramKind, normaliseFacts, usedContainers, type Card, type Edge, type Positions, type Pt, type Scene, type SerialLayout } from "../engine/index.js"
-import { escHtml, layers, setStatus, tick, ui, world } from "./dom.js"
+import { escHtml, layers, setStatus, settleTicker, tick, ui, world } from "./dom.js"
 import { fitTo } from "./camera.js"
 import { app } from "./host.js"
 import { showAnalysis, showScanning, showSuggestions, type Analysis } from "./panels.js"
@@ -22,7 +22,13 @@ let beat = 0
 // Connection routes the server kept from the previous version of this diagram (edits), drawn exactly as in the file.
 let kept: Map<string, Pt[]> | null = null
 
+// Normalising the whole input is the costly part of counting; the same input object is counted once.
+let counted: { args: Record<string, unknown>; final: boolean; a: ReturnType<typeof count> } | null = null
 function available(args: Record<string, unknown>) {
+  if (counted?.args !== args || counted.final !== inputFinal) counted = { args, final: inputFinal, a: count(args) }
+  return counted.a
+}
+function count(args: Record<string, unknown>) {
   const f = normaliseFacts(args, !inputFinal)
   const [, edgeKey] = INPUT_KEYS[diagramKind(args)]
   return {
@@ -43,24 +49,48 @@ function nouns(scene: Scene): [string, string, string, string] {
   return ["components", "interfaces", "Placing components", "Wiring interfaces"]
 }
 
+// Title and subtitle as last drawn from partial input, so a partial that changes nothing on screen draws nothing.
+let drawnHead = ""
+
 function receive(args: Record<string, unknown>, final: boolean) {
   latest = args
   if (final) inputFinal = true
+  // Partial input can arrive many times a second. A pending reveal beat draws the newest input anyway; an idle view
+  // reveals (and draws) the next item once one is complete, else redraws only when the title changed. Final input is
+  // drawn at once (callers rely on that, e.g. to draw an edit's existing items quietly).
+  if (!final) {
+    if (beat) return
+    const a = available(args)
+    if (shownNodes < a.nodes || shownEdges < a.edges) return step()
+    const head = `${String(args.title ?? "")}\n${String(args.subtitle ?? "")}`
+    if (head === drawnHead) return
+    drawnHead = head
+  }
   draw()
   if (!beat) step()
 }
+
+// Once the model has finished writing, whatever is still unrevealed is caught up in about this many beats, so a large
+// diagram does not keep assembling for many seconds after the stream ended.
+const CATCH_UP_BEATS = 24, CATCH_UP_MS = 45
+// Set once a catch-up started, so its last few items do not slow back down to the drawing pace. A small edit (a few
+// items once the result is in) never starts one and keeps its gentle reveal.
+let catchingUp = false
 
 function step() {
   beat = 0
   if (!latest) return
   const a = available(latest)
   const nodesDone = shownNodes >= a.nodes && (a.edgesStarted || inputFinal)
+  if (inputFinal && a.nodes - shownNodes + a.edges - shownEdges > 8) catchingUp = true
+  // A fixed share of the whole phase per beat, so the catch-up keeps its speed to the end.
+  const batch = (total: number) => (catchingUp ? Math.ceil(total / CATCH_UP_BEATS) : 1)
   let backlog = 0
   if (shownNodes < a.nodes) {
-    shownNodes++
+    shownNodes = Math.min(a.nodes, shownNodes + batch(a.nodes))
     backlog = a.nodes - shownNodes
   } else if (nodesDone && shownEdges < a.edges) {
-    shownEdges++
+    shownEdges = Math.min(a.edges, shownEdges + batch(a.edges))
     backlog = a.edges - shownEdges
   } else {
     if (inputFinal && resultReady && !state.done) finish(resultStats)
@@ -68,7 +98,7 @@ function step() {
   }
   draw()
   const edgesPhase = shownNodes >= a.nodes && nodesDone
-  const delay = edgesPhase ? (backlog > 8 ? 90 : 150) : backlog > 8 ? 130 : backlog > 3 ? 190 : 260
+  const delay = catchingUp ? CATCH_UP_MS : edgesPhase ? (backlog > 8 ? 90 : 150) : backlog > 8 ? 130 : backlog > 3 ? 190 : 260
   beat = window.setTimeout(step, delay)
 }
 
@@ -83,8 +113,14 @@ export function draw(moved?: Set<string>) {
   const slice = { ...latest, ...(containers ? { groups: containers } : {}), [nodeKey]: rawNodes.slice(0, shownNodes), [edgeKey]: rawIfs.slice(0, shownEdges) }
   let scene: Scene
   try {
+    // While the diagram builds, lines already on screen keep their routes and only new ones are routed: routing every
+    // line again on each beat costs seconds on large diagrams and blocks the page. Not once the server's layout (with
+    // its routes) is in: that one is drawn exactly.
+    const building = !state.done && !state.layout?.routes && state.current?.edges.length
+      ? new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) : null
     const reroute = moved && state.current ? { moved, previous: new Map(state.current.edges.map((e) => [e.id, e.points] as [string, Pt[]])) }
-      : kept ? { moved: new Set<string>(), previous: kept } : undefined
+      : kept ? { moved: new Set<string>(), previous: kept }
+      : building ? { moved: new Set<string>(), previous: building } : undefined
     // Once the user dragged something, every card on screen stays where it is; only cards not drawn yet are placed.
     // Without this, cards the user never touched counted as new and jumped below the dragged one.
     const positions = state.cardsMoved && state.current
@@ -132,12 +168,14 @@ function finish(stats?: { cards: number; zones: number; edges: number }) {
   kept = null
   world.classList.add("editable")
   ui.download.disabled = ui.open.disabled = !(state.xml || state.current?.cards.length)
-  ui.flow.disabled = false
-  ui.flow.classList.toggle("on", state.flowOn)
+  const family = state.current?.facts.flow?.family
+  ui.flow.disabled = family === "class" || family === "er"
+  ui.flow.classList.toggle("on", state.flowOn && !ui.flow.disabled)
   setStatus("done", state.current?.facts.flow || state.current?.seq
     ? `${state.current.cards.length} ${nouns(state.current)[0]} · ${state.current.edges.length} ${nouns(state.current)[1]}`
     : stats ? `${stats.cards} components · ${stats.zones} zones · ${stats.edges} interfaces` : "Done")
-  tick(`✓ <b>Diagram ready</b> · routed with A* (no ${state.current?.facts.flow ? "line" : "edge"} crosses a ${state.current?.facts.flow ? "shape" : "card"})`)
+  if (streamed) tick(`✓ <b>Diagram ready</b> · routed with A* (no ${state.current?.facts.flow ? "line" : "edge"} crosses a ${state.current?.facts.flow ? "shape" : "card"})`)
+  settleTicker()
   drawFlow()
   showSuggestions()
   if (!state.userMoved) fitTo(state.current)
@@ -205,6 +243,7 @@ app.ontoolresult = async (result) => {
     beat = 0
     resultReady = true
     setStatus("error", result.content?.map((c) => ("text" in c ? c.text : "")).join(" ") || "Diagram failed")
+    settleTicker()
     return
   }
   const sc = result.structuredContent as { xml?: string; stats?: Stats; diagram?: Record<string, unknown>; analysis?: Analysis; handoff?: boolean; layout?: SerialLayout; final?: SerialLayout; positions?: Positions; routes?: Record<string, Pt[]>; edit?: { nodes: number; edges: number }; sheet?: string; file?: string } | undefined
@@ -215,6 +254,8 @@ app.ontoolresult = async (result) => {
     const xml = sc.xml
     Object.assign(sc, await fetchDrawing(sc.sheet), xml ? { xml } : {})
   }
+  // A view that did not watch the drawing (a side panel, a reload) shows no progress lines for it.
+  if (!streamed) ui.ticker.replaceChildren()
   if (sc?.file) tick(`💾 Saved <b>${escHtml(sc.file.split(/[\\/]/).pop() ?? sc.file)}</b> in the project`)
   state.xml = state.serverXml = sc?.xml ?? ""
   resultStats = sc?.stats
@@ -239,9 +280,10 @@ app.ontoolresult = async (result) => {
   // stream, makes the canvas exactly the downloadable file.
   if (sc?.diagram && latest && !sc.analysis) { latest = sc.diagram; inputFinal = true }
   if (sc?.positions || sc?.routes || sc?.layout) useServerLayout(sc, false)
-  // The exact boxes as drawn already hold the kept positions; applying those again would regrow the groups.
-  if (sc?.final) { state.layout = sc.final; state.positions = {} }
-  if (sc?.layout || sc?.positions) draw()
+  // The exact boxes as drawn already hold the kept positions; applying those again would regrow the groups. Cards the
+  // user dragged while the diagram streamed stay where they were put, so then the view lays out around them itself.
+  if (sc?.final && !state.cardsMoved) { state.layout = sc.final; state.positions = {} }
+  if (sc?.layout || sc?.positions || sc?.final) draw()
   if (sc?.analysis) showAnalysis(sc.analysis)
   if (sc?.handoff) {
     setStatus("done", "Evidence collected · the agent is drawing the diagram")
@@ -277,7 +319,8 @@ app.ontoolresult = async (result) => {
 // The whole diagram at once and still: no entrance animations and no camera glide. The classes are removed in the same
 // task that added them, so the browser never starts those animations.
 function showWhole() {
-  revealAll()
+  // Only a view that did not watch the diagram being built shows it whole, so it gets no progress lines either.
+  quietly(() => revealAll())
   for (const node of Array.from(document.querySelectorAll(".enter"))) node.classList.remove("enter")
   for (const path of Array.from(layers.edges.querySelectorAll<SVGPathElement>("path"))) path.style.strokeDasharray = path.dataset.dash ?? ""
   if (!state.done) finish(resultStats)

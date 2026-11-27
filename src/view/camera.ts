@@ -16,10 +16,14 @@ export function animateCam() {
   }
   raf = requestAnimationFrame(step)
 }
+// The canvas size, kept up to date by a ResizeObserver: reading it in fitTo, right after a draw changed the diagram,
+// forced a synchronous layout of the whole SVG on every frame.
+let size = { w: 0, h: 0 }
+new ResizeObserver(([entry]) => { size = { w: entry.contentRect.width, h: entry.contentRect.height } }).observe(canvas)
 export function fitTo(scene: Scene | null, instant = false) {
   const w = scene ? scene.width : 1400, h = scene ? scene.height : 800
-  const r = canvas.getBoundingClientRect()
-  const aspect = r.width && r.height ? r.width / r.height : 16 / 9
+  if (!size.w || !size.h) { const r = canvas.getBoundingClientRect(); size = { w: r.width, h: r.height } }
+  const aspect = size.w && size.h ? size.w / size.h : 16 / 9
   let vw = w + 40, vh = h + 10
   if (vw / vh < aspect) vw = vh * aspect
   else vh = vw / aspect

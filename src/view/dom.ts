@@ -51,12 +51,27 @@ export function sweep(layer: SVGGElement) {
   }
 }
 
+// Lines show the drawing's progress while it builds. Once it is done (settleTicker) the feed clears itself a moment after
+// its last line, so a finished diagram has a clean canvas; later notices (a download, a move) come and go the same way.
+let settled = false
+let fadeTimer = 0
+const LINGER_MS = 2600, FADE_MS = 400
+function fadeLater() {
+  window.clearTimeout(fadeTimer)
+  ui.ticker.classList.remove("fading")
+  fadeTimer = window.setTimeout(() => {
+    ui.ticker.classList.add("fading")
+    fadeTimer = window.setTimeout(() => { ui.ticker.replaceChildren(); ui.ticker.classList.remove("fading") }, FADE_MS)
+  }, LINGER_MS)
+}
+export function settleTicker() { settled = true; fadeLater() }
 export function tick(html: string) {
   const li = document.createElement("li")
   li.innerHTML = html
   ui.ticker.appendChild(li)
   for (const old of Array.from(ui.ticker.children).slice(0, -1)) old.classList.add("old")
   while (ui.ticker.children.length > 5) ui.ticker.firstElementChild!.remove()
+  if (settled) fadeLater()
 }
 export const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!)
 

@@ -14,6 +14,12 @@ export function applyContext(ctx: McpUiHostContext | undefined) {
     document.documentElement.dataset.display = ctx.displayMode
     ui.fullscreen.textContent = ctx.displayMode === "fullscreen" ? "⤡" : "⤢"
   }
+  if (ctx.safeAreaInsets) {
+    for (const side of ["top", "right", "bottom", "left"] as const) {
+      const v = Number(ctx.safeAreaInsets[side])
+      document.documentElement.style.setProperty(`--safe-${side}`, `${Number.isFinite(v) && v > 0 ? Math.min(v, 200) : 0}px`)
+    }
+  }
   const dims = ctx.containerDimensions as { height?: number; maxHeight?: number } | undefined
   const app = document.getElementById("app")!
   if (dims && typeof dims.height === "number") app.style.height = "100vh"

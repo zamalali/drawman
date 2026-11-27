@@ -95,11 +95,16 @@ export function drawCards(scene: Scene, added: Card[]) {
     })
     g.dataset.id = n.id
     g.style.transform = `translate(${x}px, ${y}px)`
-    const ib = iconBox(c.icon, h)
+    // Set the icon only when it changes: re-setting the same data URI on every draw made the browser decode it again.
     const icon = g.querySelector("image")!
-    icon.setAttribute("href", dataUri(ib.ic.image))
-    icon.setAttribute("x", String(ib.x)); icon.setAttribute("y", String(ib.y))
-    icon.setAttribute("width", String(ib.w)); icon.setAttribute("height", String(ib.h))
+    const iconKey = `${c.icon}:${h}`
+    if (icon.dataset.icon !== iconKey) {
+      const ib = iconBox(c.icon, h)
+      icon.dataset.icon = iconKey
+      icon.setAttribute("href", dataUri(ib.ic.image))
+      icon.setAttribute("x", String(ib.x)); icon.setAttribute("y", String(ib.y))
+      icon.setAttribute("width", String(ib.w)); icon.setAttribute("height", String(ib.h))
+    }
     const body = g.querySelector<SVGRectElement>(".body")!
     const dashed = n.status === "planned" || n.status === "bypassed"
     body.setAttribute("stroke-dasharray", dashed ? "4 3" : "")

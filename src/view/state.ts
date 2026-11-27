@@ -14,7 +14,8 @@ export const state = {
   current: null as Scene | null,
   xml: "",
   done: false,
-  flowOn: true,
+  // The data-flow animation: off until the user turns it on.
+  flowOn: false,
   // Final layout computed by the server (grouped diagrams); used once the tool result has arrived.
   layout: null as SerialLayout | null,
   // The server's id for this diagram and the positions it placed, so hand-made moves can be reported back for edits.

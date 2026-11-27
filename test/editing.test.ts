@@ -95,3 +95,42 @@ test("dragging re-routes only the moved card's interfaces and keeps every other 
 test("no positions means the deterministic layout is untouched", () => {
   assert.deepEqual(buildScene(facts, {}), buildScene(facts))
 })
+
+// A large architecture as a model writes it: 66 components, 89 interfaces, most of them between neighbours.
+function largeArchitecture() {
+  let seed = 3
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+  const kinds = ["cloud_run", "cloud_sql", "memorystore", "pubsub", "cloud_storage", "load_balancing", "iam", "kms", "vertex_ai", "github", "user", "artifact_registry", "cloud_scheduler", "secret_manager"]
+  const nodes = Array.from({ length: 66 }, (_, i) => ({ id: `c${i}`, title: `Component ${i}`, detail: "service", kind: kinds[Math.floor(rnd() * kinds.length)] }))
+  const interfaces = Array.from({ length: 89 }, () => {
+    const a = Math.floor(rnd() * 66)
+    let b = rnd() < 0.85 ? a + 1 + Math.floor(rnd() * 6) : Math.floor(rnd() * 66)
+    if (b >= 66 || b === a) b = (a + 7) % 66
+    return { from: `c${a}`, to: `c${b}`, protocol: "HTTPS" }
+  })
+  return { title: "Large platform", nodes, interfaces }
+}
+
+// The live view draws after every revealed line. Routing every line again each time took seconds per frame on a
+// diagram this size and blocked the page; lines already on screen keep their route and only the new one is routed.
+test("a large diagram streams in line by line without re-routing the lines already on screen", () => {
+  const args = largeArchitecture()
+  let shown: Scene | null = null
+  for (let e = 0; e <= args.interfaces.length; e++) {
+    const previous = shown?.edges.length ? new Map(shown.edges.map((x) => [x.id, x.points])) : null
+    const scene = buildScene(normaliseFacts({ ...args, interfaces: args.interfaces.slice(0, e) }, false), {}, previous ? { moved: new Set(), previous } : undefined)
+    for (const x of scene.edges) if (previous?.has(x.id)) assert.deepEqual(x.points, previous.get(x.id), `${x.id} jumped when line ${e} arrived`)
+    shown = scene
+  }
+  assertClean(shown!, args.interfaces.length)
+})
+
+// The router reuses its working arrays between calls on an area of the same size; no call may see another's state.
+test("routing is the same whatever was routed before, on areas of the same or another size", () => {
+  const small = () => buildScene(facts).edges.map((e) => e.points)
+  const large = () => buildScene(normaliseFacts(largeArchitecture(), false)).edges.map((e) => e.points)
+  const first = small(), big = large()
+  assert.deepEqual(small(), first, "after a larger area")
+  assert.deepEqual(small(), first, "twice on the same area")
+  assert.deepEqual(large(), big, "after a smaller area")
+})

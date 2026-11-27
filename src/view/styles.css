@@ -25,7 +25,8 @@ html, body { margin: 0; height: 100%; font-family: var(--font-sans); color: var(
 }
 :root[data-display="fullscreen"] #app { border-radius: 0; border: 0; }
 
-.bar { display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 12px; border-bottom: 1px solid var(--color-border-primary); background: var(--color-background-primary); }
+/* Host safe-area insets (MCP Apps hostContext.safeAreaInsets): controls stay clear of what the host draws over the frame. */
+.bar { display: flex; align-items: center; gap: 12px; padding: calc(8px + var(--safe-top, 0px)) calc(10px + var(--safe-right, 0px)) 8px calc(12px + var(--safe-left, 0px)); border-bottom: 1px solid var(--color-border-primary); background: var(--color-background-primary); }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
 .logo { width: 26px; height: 26px; flex: none; }
 .titles { min-width: 0; }
@@ -98,9 +99,10 @@ text { font-family: "Segoe UI", Helvetica, Arial, sans-serif; }
 .empty.failed .pulse { animation: none; opacity: .25; }
 @keyframes breathe { 50% { transform: scale(.82) rotate(8deg); opacity: .45; } }
 
-.ticker { position: absolute; left: 12px; bottom: 12px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; pointer-events: none; max-width: 46%; }
+.ticker { position: absolute; left: calc(12px + var(--safe-left, 0px)); bottom: calc(12px + var(--safe-bottom, 0px)); transition: opacity .4s; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; pointer-events: none; max-width: 46%; }
 .ticker li { font-size: 11.5px; padding: 4px 9px; border-radius: 8px; background: rgba(32,33,36,.82); color: #fff; animation: tick-in .3s ease-out both; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ticker li.old { opacity: .55; }
+.ticker.fading { opacity: 0; }
 .ticker li b { color: #ffcf8a; font-weight: 600; }
 @keyframes tick-in { from { opacity: 0; transform: translateX(-10px); } }
 
@@ -110,7 +112,7 @@ text { font-family: "Segoe UI", Helvetica, Arial, sans-serif; }
 .inspector ul { margin: 6px 0 10px; padding-left: 16px; }
 .inspector li { margin: 2px 0; }
 .inspector .row { display: flex; gap: 6px; flex-wrap: wrap; }
-.suggest { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 52%; }
+.suggest { position: absolute; right: calc(12px + var(--safe-right, 0px)); bottom: calc(12px + var(--safe-bottom, 0px)); display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 52%; }
 .suggest button { background: var(--color-background-primary); box-shadow: 0 2px 8px rgba(0,0,0,.08); border-radius: 999px; padding: 6px 12px; }
 
 .frame.enter { animation: zone-in .6s ease-out both; }

@@ -81,3 +81,44 @@ test("an edit result replaces any layout fetched while it streamed", () => {
   const edit = onResult.slice(onResult.indexOf("if (sc?.edit && sc.diagram)"))
   assert.match(edit, /useServerLayout\(sc, true\)[\s\S]*?state\.layout = sc\.final \?\? sc\.layout \?\? null/)
 })
+test("while a diagram builds, lines on screen keep their routes; the server's final layout is drawn exactly", () => {
+  const drawFn = stream.slice(stream.indexOf("export function draw("), stream.indexOf("state.current = scene"))
+  assert.match(drawFn, /const building = !state\.done && !state\.layout\?\.routes && state\.current\?\.edges\.length/)
+  assert.match(drawFn, /: building \? \{ moved: new Set<string>\(\), previous: building \} : undefined/)
+  assert.match(onResult, /if \(sc\?\.final && !state\.cardsMoved\) \{ state\.layout = sc\.final; state\.positions = \{\} \}/, "a fresh view routes nothing")
+  assert.match(onResult, /if \(sc\?\.layout \|\| sc\?\.positions \|\| sc\?\.final\) draw\(\)/)
+})
+
+test("partial input draws only what changed: a reveal pending, the next complete item or a new title", () => {
+  const receive = stream.slice(stream.indexOf("function receive("), stream.indexOf("// Once the model has finished writing"))
+  assert.match(receive, /if \(!final\) \{\s+if \(beat\) return\s+const a = available\(args\)\s+if \(shownNodes < a\.nodes \|\| shownEdges < a\.edges\) return step\(\)/)
+  assert.match(receive, /if \(head === drawnHead\) return/)
+  assert.match(receive, /\}\s+draw\(\)\s+if \(!beat\) step\(\)/, "final input draws at once")
+})
+
+test("the progress feed clears itself once the diagram is done or failed", () => {
+  const dom = readFileSync(new URL("../src/view/dom.ts", import.meta.url), "utf8")
+  const finish = stream.slice(stream.indexOf("function finish("), stream.indexOf("// An edit (edit_diagram)"))
+  assert.match(finish, /tick\(`✓ <b>Diagram ready<\/b>[^\n]*\n\s+settleTicker\(\)/)
+  assert.match(onResult.slice(0, onResult.indexOf("const sc =")), /setStatus\("error"[^\n]*\n\s+settleTicker\(\)/)
+  assert.match(dom, /export function settleTicker\(\) \{ settled = true; fadeLater\(\) \}/)
+  assert.match(dom, /if \(settled\) fadeLater\(\)/, "later notices come and go")
+  assert.match(dom, /ui\.ticker\.replaceChildren\(\)/)
+  assert.match(finish, /if \(streamed\) tick\(`✓ <b>Diagram ready/, "only a view that watched the drawing announces it")
+  assert.match(onResult, /if \(!streamed\) ui\.ticker\.replaceChildren\(\)\s+if \(sc\?\.file\) tick/, "a side panel or reload shows no progress lines")
+})
+
+test("the data-flow animation is called Animation and is off until the user turns it on", () => {
+  const html = readFileSync(new URL("../src/view/view.html", import.meta.url), "utf8")
+  const st = readFileSync(new URL("../src/view/state.ts", import.meta.url), "utf8")
+  assert.match(html, /<button id="flow"[^>]*>Animation<\/button>/)
+  assert.match(st, /flowOn: false,/)
+})
+
+test("controls stay clear of what the host draws over the frame (safe-area insets)", () => {
+  const host = readFileSync(new URL("../src/view/host.ts", import.meta.url), "utf8")
+  const css = readFileSync(new URL("../src/view/styles.css", import.meta.url), "utf8")
+  assert.match(host, /setProperty\(`--safe-\$\{side\}`/)
+  assert.match(css, /\.bar \{[^}]*calc\(10px \+ var\(--safe-right, 0px\)\)/)
+  assert.match(css, /\.suggest \{[^}]*right: calc\(12px \+ var\(--safe-right, 0px\)\)/)
+})
