@@ -8,6 +8,8 @@ export type Dir = keyof typeof DIRS
 const BEND = 45, OVERLAP = 60, CROSS = 8, HEADER = 12, PORT_REUSE = 400, FOREIGN_ZONE = 6
 const INWARD: Record<Dir, Dir> = { R: "L", L: "R", T: "B", B: "T" }
 const DIR_INDEX: Record<Dir, number> = { R: 0, L: 1, B: 2, T: 3 }
+const DIR_NAMES: Dir[] = ["R", "L", "B", "T"]
+const DX = [1, -1, 0, 0], DY = [0, 0, 1, -1]
 // Grid points as numbers: no string building in the A* loop.
 const k = (x: number, y: number) => (x + 50_000) * 200_000 + (y + 50_000)
 
@@ -16,15 +18,31 @@ const k = (x: number, y: number) => (x + 50_000) * 200_000 + (y + 50_000)
 class Area {
   constructor(readonly gx0: number, readonly gy0: number, readonly nx: number, readonly ny: number) {}
   index(key: number) {
-    const xs = Math.floor(key / 200_000), x = xs - 50_000, y = key - xs * 200_000 - 50_000
+    const xs = Math.floor(key / 200_000)
+    return this.cell(xs - 50_000, key - xs * 200_000 - 50_000)
+  }
+  // The same index straight from coordinates, for the search loop (no key decoding).
+  cell(x: number, y: number) {
     const i = (x - this.gx0) / GRID, j = (y - this.gy0) / GRID
     return i >= 0 && j >= 0 && i < this.nx && j < this.ny && Number.isInteger(i) && Number.isInteger(j) ? i * this.ny + j : -1
   }
 }
+// Typed arrays are reused from one call to the next while the routing area keeps its size (the live view routes one
+// new line per frame on the same canvas): allocating and collecting them each time cost more than the search itself.
+// Each slot is used by one structure per call, and routing is synchronous, so a slot is never shared.
+type Typed = Float64Array | Uint8Array | Int32Array | Int8Array
+const pool = new Map<string, Typed>()
+// fill undefined: the caller only reads what it wrote in this call, so old values do not matter.
+function scratch<T extends Typed>(slot: string, make: (n: number) => T, n: number, fill?: number): T {
+  let a = pool.get(slot) as T | undefined
+  if (!a || a.length !== n) { a = make(n); pool.set(slot, a) }
+  return (fill === undefined ? a : a.fill(fill)) as T
+}
+// The *At methods take the cell index (Area.cell) the caller already has; the key is only used outside the area.
 class DenseCount {
-  private a: Float64Array
+  readonly a: Float64Array
   private rest = new Map<number, number>()
-  constructor(private area: Area, fill = 0, per = 1) { this.a = new Float64Array(area.nx * area.ny * per).fill(fill); this.fillValue = fill; this.per = per }
+  constructor(private area: Area, slot: string, fill = 0, per = 1) { this.a = scratch(slot, (n) => new Float64Array(n), area.nx * area.ny * per, fill); this.fillValue = fill; this.per = per }
   private fillValue: number
   private per: number
   private at(key: number) {
@@ -34,21 +52,25 @@ class DenseCount {
   }
   get(key: number): number | undefined { const i = this.at(key); return i >= 0 ? this.a[i] : this.rest.get(key) }
   set(key: number, v: number) { const i = this.at(key); if (i >= 0) this.a[i] = v; else this.rest.set(key, v); return this }
+  getAt(i: number, key: number): number | undefined { return i >= 0 ? this.a[i] : this.rest.get(key) }
+  setAt(i: number, key: number, v: number) { if (i >= 0) this.a[i] = v; else this.rest.set(key, v) }
   reset() { this.a.fill(this.fillValue); this.rest.clear() }
 }
 class DenseFlag {
   private a: Uint8Array
   private rest = new Set<number>()
-  constructor(private area: Area) { this.a = new Uint8Array(area.nx * area.ny) }
+  constructor(private area: Area, slot: string) { this.a = scratch(slot, (n) => new Uint8Array(n), area.nx * area.ny, 0) }
   has(key: number) { const i = this.area.index(key); return i >= 0 ? this.a[i] === 1 : this.rest.has(key) }
+  hasAt(i: number, key: number) { return i >= 0 ? this.a[i] === 1 : this.rest.has(key) }
   add(key: number) { const i = this.area.index(key); if (i >= 0) this.a[i] = 1; else this.rest.add(key); return this }
 }
 class DenseName {
   private a: Int32Array
   private names: string[] = []
   private rest = new Map<number, string>()
-  constructor(private area: Area) { this.a = new Int32Array(area.nx * area.ny).fill(-1) }
-  get(key: number) { const i = this.area.index(key); if (i < 0) return this.rest.get(key); const v = this.a[i]; return v < 0 ? undefined : this.names[v] }
+  constructor(private area: Area) { this.a = scratch("interior", (n) => new Int32Array(n), area.nx * area.ny, -1) }
+  get(key: number) { const i = this.area.index(key); return this.getAt(i, key) }
+  getAt(i: number, key: number) { if (i < 0) return this.rest.get(key); const v = this.a[i]; return v < 0 ? undefined : this.names[v] }
   set(key: number, name: string) {
     const i = this.area.index(key)
     if (i < 0) { this.rest.set(key, name); return this }
@@ -87,43 +109,59 @@ function ports(box: Box, used: Map<number, number>, exact = false, pull = 1, all
   return out
 }
 
-interface HeapItem { f: number; g: number; goal: boolean; x: number; y: number; d: string; seq: number }
+// A binary heap of search states kept in typed arrays (no object per push). Ties break exactly as before: f, then g,
+// then x, then y, then insertion order, so routes do not depend on the heap's layout.
 class Heap {
-  private a: HeapItem[] = []
-  private seq = 0
-  get size() { return this.a.length }
-  private less(p: HeapItem, q: HeapItem) {
-    return p.f !== q.f ? p.f < q.f : p.g !== q.g ? p.g < q.g : p.x !== q.x ? p.x < q.x : p.y !== q.y ? p.y < q.y : p.seq < q.seq
+  private f = new Float64Array(1024); private g = new Float64Array(1024); private x = new Float64Array(1024); private y = new Float64Array(1024)
+  private d = new Uint8Array(1024); private goal = new Uint8Array(1024)
+  private h = new Int32Array(1024)
+  private items = 0
+  private n = 0
+  get size() { return this.n }
+  // The fields of the item pop() returned last.
+  topF = 0; topG = 0; topX = 0; topY = 0; topD = 0; topGoal = false
+  clear() { this.items = 0; this.n = 0 }
+  private less(p: number, q: number) {
+    const { f, g, x, y } = this
+    return f[p] !== f[q] ? f[p] < f[q] : g[p] !== g[q] ? g[p] < g[q] : x[p] !== x[q] ? x[p] < x[q] : y[p] !== y[q] ? y[p] < y[q] : p < q
   }
-  push(item: Omit<HeapItem, "seq">) {
-    const a = this.a
-    a.push({ ...item, seq: this.seq++ })
-    let i = a.length - 1
+  private grow() {
+    const size = this.f.length * 2
+    const up = <T extends Float64Array | Uint8Array | Int32Array>(a: T): T => { const b = new (a.constructor as new (n: number) => T)(size); b.set(a); return b }
+    this.f = up(this.f); this.g = up(this.g); this.x = up(this.x); this.y = up(this.y); this.d = up(this.d); this.goal = up(this.goal); this.h = up(this.h)
+  }
+  push(f: number, g: number, goal: boolean, x: number, y: number, d: number) {
+    if (this.items === this.f.length) this.grow()
+    const id = this.items++
+    this.f[id] = f; this.g[id] = g; this.x[id] = x; this.y[id] = y; this.d[id] = d; this.goal[id] = goal ? 1 : 0
+    const h = this.h
+    let i = this.n++
+    h[i] = id
     while (i > 0) {
       const p = (i - 1) >> 1
-      if (!this.less(a[i], a[p])) break;
-      [a[i], a[p]] = [a[p], a[i]]
+      if (!this.less(h[i], h[p])) break
+      const t = h[i]; h[i] = h[p]; h[p] = t
       i = p
     }
   }
-  pop(): HeapItem {
-    const a = this.a
-    const top = a[0]
-    const last = a.pop()!
-    if (a.length) {
-      a[0] = last
+  pop() {
+    const h = this.h
+    const top = h[0]
+    const last = h[--this.n]
+    if (this.n) {
+      h[0] = last
       let i = 0
       for (;;) {
         const l = 2 * i + 1, r = l + 1
         let m = i
-        if (l < a.length && this.less(a[l], a[m])) m = l
-        if (r < a.length && this.less(a[r], a[m])) m = r
-        if (m === i) break;
-        [a[i], a[m]] = [a[m], a[i]]
+        if (l < this.n && this.less(h[l], h[m])) m = l
+        if (r < this.n && this.less(h[r], h[m])) m = r
+        if (m === i) break
+        const t = h[i]; h[i] = h[m]; h[m] = t
         i = m
       }
     }
-    return top
+    this.topF = this.f[top]; this.topG = this.g[top]; this.topX = this.x[top]; this.topY = this.y[top]; this.topD = this.d[top]; this.topGoal = this.goal[top] === 1
   }
 }
 
@@ -137,7 +175,7 @@ export function routeEdges(
   const [x0, y0, x1, y1] = bounds
   const gx0 = Math.floor(x0 / GRID) * GRID, gy0 = Math.floor(y0 / GRID) * GRID
   const area = new Area(gx0, gy0, Math.floor((x1 - gx0) / GRID) + 1, Math.floor((y1 - gy0) / GRID) + 1)
-  const blocked = new DenseFlag(area)
+  const blocked = new DenseFlag(area, "blocked")
   for (const [x, y, w, h] of cards.values()) {
     for (let gx = Math.floor((x - 6) / GRID) * GRID; gx < Math.trunc(x + w + 6) + GRID; gx += GRID) {
       for (let gy = Math.floor((y - 6) / GRID) * GRID; gy < Math.trunc(y + h + 6) + GRID; gy += GRID) {
@@ -145,7 +183,7 @@ export function routeEdges(
       }
     }
   }
-  const header = new DenseFlag(area)
+  const header = new DenseFlag(area, "header")
   const interior = new DenseName(area)
   // Larger zones first, so a cell inside nested groups belongs to the innermost one.
   const byArea = [...zones].sort(([, a], [, b]) => b.box[2] * b.box[3] - a.box[2] * a.box[3])
@@ -174,7 +212,7 @@ export function routeEdges(
     while (p && !out.includes(p)) { out.push(p); p = zones.get(p)?.parent }
     return out
   }
-  const usedH = new DenseCount(area), usedV = new DenseCount(area), portUse = new Map<number, number>()
+  const usedH = new DenseCount(area, "usedH"), usedV = new DenseCount(area, "usedV"), portUse = new Map<number, number>()
   const add = (m: DenseCount | Map<number, number>, key: number) => m.set(key, (m.get(key) ?? 0) + 1)
   // Lines that stay as they are (kept from before an edit) occupy their tracks and ports, so new lines avoid riding on them.
   for (const pts of opts.fixed ?? []) {
@@ -192,7 +230,12 @@ export function routeEdges(
       }
     }
   }
-  const best = new DenseCount(area, Infinity, 4)
+  const best = new DenseCount(area, "best", Infinity, 4)
+  // Search state per (grid point, direction): the state it was reached from (pd -1: a start, px/py its boundary point).
+  const states = area.nx * area.ny * 4
+  const px = scratch("px", (n) => new Float64Array(n), states), py = scratch("py", (n) => new Float64Array(n), states), pd = scratch("pd", (n) => new Int8Array(n), states)
+  const parentRest = new Map<number, { start: Pt } | { x: number; y: number; d: Dir }>()
+  const heap = new Heap()
   const routes = new Map<string, Pt[]>()
   const failed: string[] = []
   const dist = (e: Interface) => {
@@ -231,68 +274,75 @@ export function routeEdges(
       return m
     }
     type Parent = { start: Pt } | { x: number; y: number; d: Dir }
-    const heap = new Heap()
+    heap.clear()
     best.reset()
-    const parent = new Map<number, Parent>()
+    parentRest.clear()
     const goalBest = new Map<number, number>()
     const goalParent = new Map<number, { x: number; y: number; d: Dir }>()
     for (const p of src) {
-      const key = k(...p.stub) * 4 + DIR_INDEX[p.side]
-      if (p.pen < (best.get(key) ?? Infinity)) {
-        best.set(key, p.pen)
-        parent.set(key, { start: p.boundary })
+      const sd = DIR_INDEX[p.side], c = area.cell(p.stub[0], p.stub[1])
+      const si = c >= 0 ? c * 4 + sd : -1, key = k(...p.stub) * 4 + sd
+      if (p.pen < (best.getAt(si, key) ?? Infinity)) {
+        best.setAt(si, key, p.pen)
+        if (si >= 0) { pd[si] = -1; px[si] = p.boundary[0]; py[si] = p.boundary[1] } else parentRest.set(key, { start: p.boundary })
       }
-      heap.push({ f: p.pen + heur(p.stub[0], p.stub[1]), g: p.pen, goal: false, x: p.stub[0], y: p.stub[1], d: p.side })
+      heap.push(p.pen + heur(p.stub[0], p.stub[1]), p.pen, false, p.stub[0], p.stub[1], sd)
     }
     let found: number | null = null
     let guard = 0
     while (heap.size && guard++ < 600_000) {
-      const { g, goal, x, y, d } = heap.pop()
-      if (goal) {
+      heap.pop()
+      const g = heap.topG, x = heap.topX, y = heap.topY, d = heap.topD
+      if (heap.topGoal) {
         found = k(x, y)
         break
       }
-      const sk = k(x, y) * 4 + DIR_INDEX[d as Dir]
-      if (g > (best.get(sk) ?? Infinity)) continue
-      const gp = goals.get(k(x, y))
+      const here = k(x, y), c = area.cell(x, y)
+      if (g > (best.getAt(c >= 0 ? c * 4 + d : -1, here * 4 + d) ?? Infinity)) continue
+      const gp = goals.get(here)
       if (gp) {
-        const cost = g + gp.pen + (d === INWARD[gp.side] ? 0 : BEND)
-        const gk = k(x, y)
-        if (cost < (goalBest.get(gk) ?? Infinity)) {
-          goalBest.set(gk, cost)
-          goalParent.set(gk, { x, y, d: d as Dir })
-          heap.push({ f: cost, g: cost, goal: true, x, y, d })
+        const cost = g + gp.pen + (d === DIR_INDEX[INWARD[gp.side]] ? 0 : BEND)
+        if (cost < (goalBest.get(here) ?? Infinity)) {
+          goalBest.set(here, cost)
+          goalParent.set(here, { x, y, d: DIR_NAMES[d] })
+          heap.push(cost, cost, true, x, y, d)
         }
       }
-      const [rdx, rdy] = DIRS[d as Dir]
-      for (const nd of Object.keys(DIRS) as Dir[]) {
-        const [dx, dy] = DIRS[nd]
+      const rdx = DX[d], rdy = DY[d]
+      for (let nd = 0; nd < 4; nd++) {
+        const dx = DX[nd], dy = DY[nd]
         if (dx === -rdx && dy === -rdy) continue
         const nx = x + dx * GRID, ny = y + dy * GRID
-        const nk = k(nx, ny)
-        if (!(sx0 <= nx && nx <= sx1 && sy0 <= ny && ny <= sy1) || (blocked.has(nk) && !goals.has(nk))) continue
-        let step = GRID + (nd !== d ? BEND : 0) + (header.has(nk) ? HEADER : 0)
-        const iz = interior.get(nk)
+        if (!(sx0 <= nx && nx <= sx1 && sy0 <= ny && ny <= sy1)) continue
+        const nk = k(nx, ny), nc = area.cell(nx, ny)
+        if (blocked.hasAt(nc, nk) && !goals.has(nk)) continue
+        let step = GRID + (nd !== d ? BEND : 0) + (header.hasAt(nc, nk) ? HEADER : 0)
+        const iz = interior.getAt(nc, nk)
         if (iz !== undefined && !own.has(iz)) step += FOREIGN_ZONE
         step += dx
-          ? OVERLAP * (usedH.get(nk) ?? 0) + CROSSING * (usedV.get(nk) ?? 0)
-          : OVERLAP * (usedV.get(nk) ?? 0) + CROSSING * (usedH.get(nk) ?? 0)
+          ? OVERLAP * (usedH.getAt(nc, nk) ?? 0) + CROSSING * (usedV.getAt(nc, nk) ?? 0)
+          : OVERLAP * (usedV.getAt(nc, nk) ?? 0) + CROSSING * (usedH.getAt(nc, nk) ?? 0)
         const ng = g + step
-        const ck = nk * 4 + DIR_INDEX[nd]
-        if (ng < (best.get(ck) ?? Infinity)) {
-          best.set(ck, ng)
-          parent.set(ck, { x, y, d: d as Dir })
-          heap.push({ f: ng + heur(nx, ny), g: ng, goal: false, x: nx, y: ny, d: nd })
+        const ci = nc >= 0 ? nc * 4 + nd : -1, ck = nk * 4 + nd
+        if (ng < (best.getAt(ci, ck) ?? Infinity)) {
+          best.setAt(ci, ck, ng)
+          if (ci >= 0) { pd[ci] = d; px[ci] = x; py[ci] = y } else parentRest.set(ck, { x, y, d: DIR_NAMES[d] })
+          heap.push(ng + heur(nx, ny), ng, false, nx, ny, nd)
         }
       }
     }
     if (found === null) return null
+    const parentOf = (x: number, y: number, d: Dir): Parent => {
+      const c = area.cell(x, y), si = c >= 0 ? c * 4 + DIR_INDEX[d] : -1
+      if (si < 0) return parentRest.get(k(x, y) * 4 + DIR_INDEX[d])!
+      return pd[si] < 0 ? { start: [px[si], py[si]] } : { x: px[si], y: py[si], d: DIR_NAMES[pd[si]] }
+    }
     const pts: Pt[] = []
     let state = goalParent.get(found)!
     let startBoundary: Pt
     for (;;) {
       pts.push([state.x, state.y])
-      const prev = parent.get(k(state.x, state.y) * 4 + DIR_INDEX[state.d])!
+      const prev = parentOf(state.x, state.y, state.d)
       if ("start" in prev) {
         startBoundary = prev.start
         break
